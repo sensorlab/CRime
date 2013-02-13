@@ -1,0 +1,8 @@
+C_RIME_CHAMELEON =  stack.c amodule.c c_channel.c
+C_RIME_SINGLEHOP = c_abc.c c_broadcast.c c_unicast.c c_polite.c                
+C_RIME_MULTIHOP  = c_trickle.c c_multihop.c c_rnd_routing.c c_netflood.c
+C_RIME_MESH      = c_route_discovery.c  c_mesh.c
+
+CONTIKI_SOURCEFILES += $(C_RIME_SINGLEHOP) $(C_RIME_MULTIHOP) $(C_RIME_MESH) $(C_RIME_CHAMELEON)               
+               
+               
