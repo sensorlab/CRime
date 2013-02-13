@@ -107,22 +107,6 @@ void c_recv(struct pipe *p, struct stackmodule_i *module, uint8_t len) {
 
 int c_send(struct pipe *p, struct stackmodule_i *module, uint8_t len) {
 	PRINTF("c_send %d\n", len);
-
-	if (module[len].time_trigger_flg && !module[len].trigger_init_flg) {
-		PRINTF("c_send if\n");
-		p->buf = queuebuf_new_from_packetbuf();
-		static struct trigger_param *param;
-		param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
-		param->pip = p;
-		module->trigger_th = 0;
-		param->amodule = stack[module[len].stack_id].amodule;
-		param->modidx = len;
-		param->rxmittime = module[len].trigger_interval;
-		module[len].trigger_init_flg = 1;
-		PRINTF("c_send params set\n");
-		ctimer_set(&module[len].timer, param->rxmittime, c_triggered_send,
-				param);
-	}
 	int send_flg = module[len].c_send(p, &module[len]);
 	len--;
 	if ((len >= 0) && (len < 255) && (send_flg)) {
@@ -136,10 +120,14 @@ void c_triggered_send(struct trigger_param *param) {
 	PRINTF("c_triggered_send\n");
 	queuebuf_to_packetbuf(param->pip->buf);
 	c_send(param->pip, param->amodule, param->modidx);
-	int modno = stack[param->amodule[param->modidx].stack_id].modno;
-	if (param->amodule[modno].trigger_th && (--param->triggerno > 0)) {
+
+	int modno = param->modidx;//stack[param->amodule[param->modidx].stack_id].modno - 1;
+	printf("!!!! %d %d %d %s\n", modno, param->amodule[modno].trigger_th,
+			param->amodule[modno].trigger_no, (char*) param->pip->buf);
+	if (param->amodule[modno].trigger_th &&
+			(--param->amodule[modno].trigger_no > 0)) {
 		param->pip->buf = queuebuf_new_from_packetbuf();
-		ctimer_set(&param->amodule[modno - 1].timer, param->rxmittime,
+		ctimer_set(&param->amodule[modno].timer, param->rxmittime,
 			c_triggered_send, param);
 		PRINTF("c_triggered_send scheduled\n");
 	}
