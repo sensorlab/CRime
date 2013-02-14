@@ -63,7 +63,6 @@ void set_amodule_trigger(int stackIdx, int modIdx) {
 	param->modidx = modIdx;
 	param->rxmittime = stack[stackIdx].amodule[modIdx].trigger_interval;
 	stack[stackIdx].amodule[modIdx].trigger_init_flg = 1;
-	printf("-----set_amodule_trigger rxmittime %d \n", param->rxmittime);
 	ctimer_set(&stack[stackIdx].amodule[modIdx].timer,
 			param->rxmittime,
 			c_triggered_send,
@@ -83,7 +82,7 @@ void stack_init(){
 	ch0 = (struct channel*) calloc(1, sizeof(struct channel)); 
 	stack[0].pip = pi0; 
 	stack[0].pip->channel = ch0; 
-	stack[0].modno = 4;
+	stack[0].modno = 4; 
 	struct stackmodule_i *amodule0; 
 	amodule0 = (struct stackmodule_i*) calloc( 
 		stack[0].modno, sizeof(struct stackmodule_i)); 
@@ -114,7 +113,7 @@ void stack_init(){
 	amodule0[1].module_id = 1; 
 	amodule0[1].parent = NULL;
 	amodule0[1].time_trigger_flg = 0;
-	addr.u8[0] = 1; addr.u8[1] = 0;
+	addr.u8[0] = 1; addr.u8[1] = 0; 
 	set_node_addr(0, OUT, SENDER, &addr);
 	amodule0[1].c_open = c_broadcast_open;
 	amodule0[1].c_close = c_broadcast_close;
@@ -126,11 +125,11 @@ void stack_init(){
 	amodule0[2].module_id = 2; 
 	amodule0[2].parent = NULL;
 	amodule0[2].time_trigger_flg = 1;
-	amodule0[2].trigger_interval = 10000;
-	amodule0[2].trigger_th = 3;
-	addr.u8[0] = 2; addr.u8[1] = 0;
+	amodule0[2].trigger_interval = 6000;
+	amodule0[2].trigger_th = 5;
+	addr.u8[0] = 2; addr.u8[1] = 0; 
 	set_node_addr(0, OUT, RECEIVER, &addr);
-	amodule0[2].trigger_no = 10;
+	amodule0[2].trigger_no = 5;
 	amodule0[2].trigger_init_flg = 0; 
 	set_amodule_trigger(0, 2);
 	amodule0[2].c_open = c_unicast_open;
@@ -139,17 +138,21 @@ void stack_init(){
 	amodule0[2].c_sent = c_unicast_sent;
 	amodule0[2].c_recv = c_unicast_recv;
 
-	amodule0[3].stack_id = 0;
-	amodule0[3].module_id = 3;
+	amodule0[3].stack_id = 0; 
+	amodule0[3].module_id = 3; 
 	amodule0[3].parent = NULL;
 	amodule0[3].time_trigger_flg = 0;
+	amodule0[3].trigger_init_flg = 0; 
+	set_amodule_trigger(0, 3);
 	amodule0[3].c_open = c_echo_app_open;
 	amodule0[3].c_close = c_echo_app_close;
 	amodule0[3].c_send = c_echo_app_send;
-	amodule0[3].c_sent = c_echo_app_sent;
 	amodule0[3].c_recv = c_echo_app_recv;
+	amodule0[3].c_sent = c_echo_app_sent;
 	amodule0[3].c_forward = c_echo_app_forward;
 	amodule0[3].c_timed_out = c_echo_app_timedout;
+
+
 }
 
 void stack_open(struct stack_i *stack){

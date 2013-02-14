@@ -19,6 +19,7 @@
 #include "net/rime/crime/c_netflood.h"
 #include "net/rime/crime/c_mesh.h"
 #include "net/rime/crime/c_route_discovery.h"
+#include "net/rime/crime/c_echo_app.h"
 
 #define DEBUG 0
 #if DEBUG
