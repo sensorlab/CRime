@@ -65,14 +65,14 @@
 #define PRINTF(...)
 #endif
 
-static struct trigger_param *param;
+//static struct trigger_param *param;
 static int c_run_trickle(struct pipe *p, struct stackmodule_i *module);
 /*---------------------------------------------------------------------------*/
 static void
 timer_callback(void *ptr)
 {
   struct trigger_param *param = ptr;
-  c_run_trickle(param->pip, param->amodule);
+  //c_run_trickle(param->pip, param->amodule);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -98,9 +98,9 @@ c_run_trickle(struct pipe *p, struct stackmodule_i *module)
 
   while(1) {
     interval = p->trickle_param.interval << p->trickle_param.interval_scaling;
-	param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
-	param->pip = p;
-	param->amodule = module;
+	//param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
+	//param->pip = p;
+	//param->amodule = module;
     PRINTF("before setting timers!\n");
     set_timer(param, &p->trickle_param.interval_timer, interval);
     PRINTF("timer1\n");
@@ -177,11 +177,11 @@ c_trickle_recv(struct pipe *p, struct stackmodule_i *module)
     p->trickle_param.interval_scaling =
     		random_rand() % p->trickle_param.interval_scaling;
 
-    param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
-    param->pip = p;
-    param->amodule = stack[module->stack_id].amodule;
-    param->modidx = stack[module->stack_id].modno-1;
-    param->rxmittime = module->trigger_interval;
+    //param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
+    //param->pip = p;
+    //param->amodule = stack[module->stack_id].amodule;
+    //param->modidx = stack[module->stack_id].modno-1;
+    //param->rxmittime = module->trigger_interval;
 
     ctimer_set(&p->trickle_param.timer, random_rand() % p->trickle_param.interval_scaling,
     		c_triggered_send, param);

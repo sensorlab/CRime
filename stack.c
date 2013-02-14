@@ -51,24 +51,6 @@ void printaddr(int stack_id) {
 			ereceiver->u8[0], ereceiver->u8[1]);
 }
 
-void set_amodule_trigger(int stackIdx, int modIdx) {
-	if (stack[stackIdx].amodule[modIdx].time_trigger_flg == 0) {return; }
-	//put application data in the queue, it will be sent on time trigger
-	packetbuf_copyfrom("test", 5);
-	stack[stackIdx].pip->buf = queuebuf_new_from_packetbuf();
-	struct trigger_param *param;
-	param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
-	param->pip = stack[stackIdx].pip;
-	param->amodule = stack[stackIdx].amodule;
-	param->modidx = modIdx;
-	param->rxmittime = stack[stackIdx].amodule[modIdx].trigger_interval;
-	stack[stackIdx].amodule[modIdx].trigger_init_flg = 1;
-	ctimer_set(&stack[stackIdx].amodule[modIdx].timer,
-			param->rxmittime,
-			c_triggered_send,
-			param);
-}
-
 void stack_init(){
 	PRINTF("stack init\n");
 	//init the stacks structure (columns of the matrix, branches of the tree)
@@ -83,6 +65,7 @@ void stack_init(){
 	stack[0].pip = pi0; 
 	stack[0].pip->channel = ch0; 
 	stack[0].modno = 4; 
+	stack[0].trigger_flg = 1;
 	struct stackmodule_i *amodule0; 
 	amodule0 = (struct stackmodule_i*) calloc( 
 		stack[0].modno, sizeof(struct stackmodule_i)); 
@@ -125,13 +108,13 @@ void stack_init(){
 	amodule0[2].module_id = 2; 
 	amodule0[2].parent = NULL;
 	amodule0[2].time_trigger_flg = 1;
-	amodule0[2].trigger_interval = 6000;
+	amodule0[2].trigger_interval = 100;
 	amodule0[2].trigger_th = 5;
 	addr.u8[0] = 2; addr.u8[1] = 0; 
 	set_node_addr(0, OUT, RECEIVER, &addr);
 	amodule0[2].trigger_no = 5;
 	amodule0[2].trigger_init_flg = 0; 
-	set_amodule_trigger(0, 2);
+	//set_amodule_trigger(0, 2);
 	amodule0[2].c_open = c_unicast_open;
 	amodule0[2].c_close = c_unicast_close;
 	amodule0[2].c_send = c_unicast_send;
@@ -143,7 +126,7 @@ void stack_init(){
 	amodule0[3].parent = NULL;
 	amodule0[3].time_trigger_flg = 0;
 	amodule0[3].trigger_init_flg = 0; 
-	set_amodule_trigger(0, 3);
+	//set_amodule_trigger(0, 3);
 	amodule0[3].c_open = c_echo_app_open;
 	amodule0[3].c_close = c_echo_app_close;
 	amodule0[3].c_send = c_echo_app_send;

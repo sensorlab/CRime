@@ -209,15 +209,17 @@ void c_timed_out(struct pipe *p,
 		struct stackmodule_i *module, uint8_t len);
 
 struct trigger_param {
-		struct pipe *pip;
-		struct stackmodule_i *amodule;
+		//struct pipe *pip;
+		//struct stackmodule_i *amodule;
+		char* buf;
+		uint8_t stackidx;
 		uint8_t modidx;
 		uint8_t triggerno;
-		clock_time_t rxmittime;
-	};
+	} param;
 
 void c_triggered_send(struct trigger_param *param);
 
+void set_amodule_trigger(int stackIdx, char* buf);
 void set_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid, rimeaddr_t* addr);
 rimeaddr_t* get_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid);
 

@@ -25,6 +25,7 @@
 #define RREP_STACK_ID 2
 
 struct stack_i {
+	int trigger_flg;
 	struct pipe *pip;
 	struct stackmodule_i *amodule;
 	uint8_t modno;

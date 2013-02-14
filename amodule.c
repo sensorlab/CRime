@@ -4,6 +4,8 @@
  *  Created on: 2011-10-17
  *      Author: carolina
  */
+#include <stdlib.h>
+#include <string.h>
 
 #include "net/rime.h"
 #include "net/rime/crime/stack.h"
@@ -105,6 +107,33 @@ void c_recv(struct pipe *p, struct stackmodule_i *module, uint8_t len) {
 	PRINTF("~c_recv %d\n", len);
 }
 
+void set_amodule_trigger(int stackIdx, char* buf) {
+
+	PRINTF("set_amodule_trigger %s \n", buf);
+	int i = 0, modIdx = 0;
+	for (i = 0; i < stack[stackIdx].modno; i++) {
+		if (stack[stackIdx].amodule[i].time_trigger_flg) {
+			modIdx = i;
+		}
+	}
+	PRINTF("%d %d %s\n", stack[stackIdx].amodule[modIdx].stack_id, modIdx, buf);
+
+	if (stack[stackIdx].amodule[modIdx].time_trigger_flg == 0) {return; }
+	//put application data in the queue, it will be sent on time trigger
+	struct trigger_param *param =
+			(struct trigger_param*) malloc(sizeof(struct trigger_param));
+	param->buf = (char*) malloc(sizeof(char));
+	param->stackidx = stackIdx;
+	param->modidx = modIdx;
+	param->triggerno = stack[stackIdx].amodule[modIdx].trigger_no;
+	memcpy(param->buf, buf, 4);
+	stack[stackIdx].amodule[modIdx].trigger_init_flg = 1;
+	ctimer_set(&stack[stackIdx].amodule[modIdx].timer,
+			stack[stackIdx].amodule[modIdx].trigger_interval,
+			c_triggered_send,
+			param);
+}
+
 int c_send(struct pipe *p, struct stackmodule_i *module, uint8_t len) {
 	PRINTF("c_send %d\n", len);
 	int send_flg = module[len].c_send(p, &module[len]);
@@ -117,17 +146,22 @@ int c_send(struct pipe *p, struct stackmodule_i *module, uint8_t len) {
 }
 
 void c_triggered_send(struct trigger_param *param) {
-	PRINTF("c_triggered_send\n");
-	queuebuf_to_packetbuf(param->pip->buf);
-	c_send(param->pip, param->amodule, param->modidx);
+	PRINTF("c_triggered_send %s\n", (char*) param->buf);
+	packetbuf_copyfrom(param->buf, 4);
+	c_send(stack[param->stackidx].pip,
+			stack[param->stackidx].amodule,
+			param->modidx);
 
 	int modno = param->modidx;//stack[param->amodule[param->modidx].stack_id].modno - 1;
-	printf("!!!! %d %d %d %s\n", modno, param->amodule[modno].trigger_th,
-			param->amodule[modno].trigger_no, (char*) param->pip->buf);
-	if (param->amodule[modno].trigger_th &&
-			(--param->amodule[modno].trigger_no > 0)) {
-		param->pip->buf = queuebuf_new_from_packetbuf();
-		ctimer_set(&param->amodule[modno].timer, param->rxmittime,
+	PRINTF("!!!! %d %d %d %s %s\n", modno,
+			stack[param->stackidx].amodule[modno].trigger_th,
+			param->triggerno,
+			(char*) param->buf,
+			(char*) stack[param->stackidx].pip->buf);
+	if (stack[param->stackidx].amodule[modno].trigger_th &&
+			(--param->triggerno > 0)) {
+		ctimer_set(&stack[param->stackidx].amodule[modno].timer,
+				stack[param->stackidx].amodule[modno].trigger_interval,
 			c_triggered_send, param);
 		PRINTF("c_triggered_send scheduled\n");
 	}
@@ -246,6 +280,7 @@ rimeaddr_t* get_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid){
 		}
 	}
 }
+
 
 /*void amodule_set_node_addr(uint8_t stackid){
 	rimeaddr_t *tmpaddr = get_node_addr(stackid, 0, 0);
