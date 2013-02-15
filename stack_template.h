@@ -27,6 +27,7 @@ struct stack_i {
 	struct pipe *pip;
 	struct stackmodule_i *amodule;
 	uint8_t modno;
+	uint8_t time_trigger_flg;
 };
 
 struct stack_i *stack;

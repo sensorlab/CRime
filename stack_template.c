@@ -51,24 +51,6 @@ void printaddr(int stack_id) {
 			ereceiver->u8[0], ereceiver->u8[1]);
 }
 
-void set_amodule_trigger(int stackIdx, int modIdx) {
-	if (stack[stackIdx].amodule[modIdx].time_trigger_flg == 0) {return; }
-	//put application data in the queue, it will be sent on time trigger
-	packetbuf_copyfrom("test", 5);
-	stack[stackIdx].pip->buf = queuebuf_new_from_packetbuf();
-	struct trigger_param *param;
-	param = (struct trigger_param*) malloc(sizeof(struct trigger_param));
-	param->pip = stack[stackIdx].pip;
-	param->amodule = stack[stackIdx].amodule;
-	param->modidx = modIdx;
-	param->rxmittime = stack[stackIdx].amodule[modIdx].trigger_interval;
-	stack[stackIdx].amodule[modIdx].trigger_init_flg = 1;
-	ctimer_set(&stack[stackIdx].amodule[modIdx].timer,
-			param->rxmittime,
-			c_triggered_send,
-			param);
-}
-
 void stack_init(){
 	PRINTF("stack init\n");
 	//init the stacks structure (columns of the matrix, branches of the tree)

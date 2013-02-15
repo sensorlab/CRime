@@ -64,8 +64,7 @@ void stack_init(){
 	ch0 = (struct channel*) calloc(1, sizeof(struct channel)); 
 	stack[0].pip = pi0; 
 	stack[0].pip->channel = ch0; 
-	stack[0].modno = 4; 
-	stack[0].trigger_flg = 1;
+	stack[0].modno = 3; 
 	struct stackmodule_i *amodule0; 
 	amodule0 = (struct stackmodule_i*) calloc( 
 		stack[0].modno, sizeof(struct stackmodule_i)); 
@@ -74,7 +73,7 @@ void stack_init(){
 
 	static struct packetbuf_attrlist c_attributes0[] = 
 	{ 
-	C_UNICAST_ATTRIBUTES PACKETBUF_ATTR_LAST 
+	C_BROADCAST_ATTRIBUTES PACKETBUF_ATTR_LAST 
 	}; 
 
 	stack[0].pip->channel_no = 0; 
@@ -95,9 +94,14 @@ void stack_init(){
 	amodule0[1].stack_id = 0; 
 	amodule0[1].module_id = 1; 
 	amodule0[1].parent = NULL;
-	amodule0[1].time_trigger_flg = 0;
-	addr.u8[0] = 1; addr.u8[1] = 0; 
+	amodule0[1].time_trigger_flg = 1;
+	addr.u8[0] = 2; addr.u8[1] = 0; 
 	set_node_addr(0, OUT, SENDER, &addr);
+	amodule0[1].trigger_interval = 3000;
+	amodule0[1].trigger_th = 5;
+	amodule0[1].trigger_no = 5;
+	stack[0].time_trigger_flg = 1; 
+	amodule0[1].trigger_init_flg = 0;
 	amodule0[1].c_open = c_broadcast_open;
 	amodule0[1].c_close = c_broadcast_close;
 	amodule0[1].c_send = c_broadcast_send;
@@ -107,33 +111,14 @@ void stack_init(){
 	amodule0[2].stack_id = 0; 
 	amodule0[2].module_id = 2; 
 	amodule0[2].parent = NULL;
-	amodule0[2].time_trigger_flg = 1;
-	amodule0[2].trigger_interval = 100;
-	amodule0[2].trigger_th = 5;
-	addr.u8[0] = 2; addr.u8[1] = 0; 
-	set_node_addr(0, OUT, RECEIVER, &addr);
-	amodule0[2].trigger_no = 5;
-	amodule0[2].trigger_init_flg = 0; 
-	//set_amodule_trigger(0, 2);
-	amodule0[2].c_open = c_unicast_open;
-	amodule0[2].c_close = c_unicast_close;
-	amodule0[2].c_send = c_unicast_send;
-	amodule0[2].c_sent = c_unicast_sent;
-	amodule0[2].c_recv = c_unicast_recv;
-
-	amodule0[3].stack_id = 0; 
-	amodule0[3].module_id = 3; 
-	amodule0[3].parent = NULL;
-	amodule0[3].time_trigger_flg = 0;
-	amodule0[3].trigger_init_flg = 0; 
-	//set_amodule_trigger(0, 3);
-	amodule0[3].c_open = c_echo_app_open;
-	amodule0[3].c_close = c_echo_app_close;
-	amodule0[3].c_send = c_echo_app_send;
-	amodule0[3].c_recv = c_echo_app_recv;
-	amodule0[3].c_sent = c_echo_app_sent;
-	amodule0[3].c_forward = c_echo_app_forward;
-	amodule0[3].c_timed_out = c_echo_app_timedout;
+	amodule0[2].time_trigger_flg = 0;
+	amodule0[2].c_open = c_echo_app_open;
+	amodule0[2].c_close = c_echo_app_close;
+	amodule0[2].c_send = c_echo_app_send;
+	amodule0[2].c_recv = c_echo_app_recv;
+	amodule0[2].c_sent = c_echo_app_sent;
+	amodule0[2].c_forward = c_echo_app_forward;
+	amodule0[2].c_timed_out = c_echo_app_timedout;
 
 
 }
