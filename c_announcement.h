@@ -12,9 +12,9 @@
 
 struct announcement;
 
-typedef void (*announcement_callback_t)(struct announcement *a,
-					const rimeaddr_t *from,
-					uint16_t id, uint16_t val);
+typedef void (*announcement_callback_t) (struct announcement * a,
+                                         const rimeaddr_t * from,
+                                         uint16_t id, uint16_t val);
 
 /**
  * \brief      Representation of an announcement.
@@ -53,8 +53,7 @@ struct announcement {
  *
  */
 void announcement_register(struct announcement *a,
-			   uint16_t id,
-			   announcement_callback_t callback);
+                           uint16_t id, announcement_callback_t callback);
 
 /**
  * \brief      Remove a previously registered announcement
@@ -123,6 +122,7 @@ void announcement_bump(struct announcement *a);
  *
  */
 void announcement_listen(int periods);
+
 /**
  * @}
  */
@@ -166,7 +166,7 @@ struct announcement *announcement_list(void);
  *             neighbor has been heard.
  *
  */
-void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
+void announcement_heard(const rimeaddr_t * from, uint16_t id, uint16_t value);
 
 /**
  * \brief      Register a listen callback with the announcement module
@@ -178,14 +178,14 @@ void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
  *             module as part of the announcement_listen() function.
  *
  */
-void announcement_register_listen_callback(void (*callback)(int time));
+void announcement_register_listen_callback(void (*callback) (int time));
 
 enum {
   ANNOUNCEMENT_NOBUMP,
   ANNOUNCEMENT_BUMP,
 };
 
-typedef void (* announcement_observer)(uint16_t id, uint8_t has_value,
+typedef void (*announcement_observer) (uint16_t id, uint8_t has_value,
                                        uint16_t newvalue, uint16_t oldvalue,
                                        uint8_t bump);
 

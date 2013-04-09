@@ -61,18 +61,20 @@ c_broadcast_open(struct pipe *p, struct stackmodule_i *module)
   channel_set_attributes(p->channel_no, p->attrlist);
   PRINTF("c_broadcast_open\n");
 }
+
 /*---------------------------------------------------------------------------*/
 void
 c_broadcast_close(struct pipe *p, struct stackmodule_i *module)
 {
-	PRINTF("c_broadcast_close\n");
+  PRINTF("c_broadcast_close\n");
 }
+
 /*---------------------------------------------------------------------------*/
 int
 c_broadcast_send(struct pipe *p, struct stackmodule_i *module)
 {
   /*PRINTF("c_broadcast_send: %d.%d: broadcast packet\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);*/
+     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]); */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   PRINTF("c_broadcast_send \n");
   printaddr(module->stack_id);
@@ -83,25 +85,27 @@ c_broadcast_send(struct pipe *p, struct stackmodule_i *module)
 void
 c_broadcast_recv(struct pipe *p, struct stackmodule_i *module)
 {
-	PRINTF("c_broadcast_recv \n");
+  PRINTF("c_broadcast_recv \n");
   rimeaddr_t tmpaddr;
+
   rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_SENDER));
   set_node_addr(module->stack_id, 1, 0, &tmpaddr);
 
   PRINTF("c_broadcast_recv: %d.%d received packet %s from %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 (char*)packetbuf_dataptr(),
-	 p->in_sender.u8[0], p->in_sender.u8[1]);
+         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+         (char *)packetbuf_dataptr(), p->in_sender.u8[0], p->in_sender.u8[1]);
   PRINTF("~c_broadcast_recv \n");
   printaddr(module->stack_id);
 
- }
+}
+
 /*---------------------------------------------------------------------------*/
 void
 c_broadcast_sent(struct pipe *p, struct stackmodule_i *module)
 {
   PRINTF("%d.%d: sent status %d num_tx %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
          p->status, p->num_tx);
 }
+
 /** @} */

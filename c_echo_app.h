@@ -9,11 +9,17 @@
 #define C_ECHO_APP_H_
 
 void c_echo_app_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_echo_app_close(struct pipe *p, struct stackmodule_i *module);
+
 int c_echo_app_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_echo_app_recv(struct pipe *p, struct stackmodule_i *module);
+
 void c_echo_app_sent(struct pipe *p, struct stackmodule_i *module);
-rimeaddr_t * c_echo_app_forward(struct pipe *p, struct stackmodule_i *module);
+
+rimeaddr_t *c_echo_app_forward(struct pipe *p, struct stackmodule_i *module);
+
 void c_echo_app_timedout(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* C_ECHO_APP_H_ */

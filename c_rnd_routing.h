@@ -33,11 +33,11 @@ rimeaddr_t * c_rnd_forward(struct multihop_conn *c,
 
 void c_rnd_init();
 
-rimeaddr_t * c_rnd_forward(struct pipe *p, struct stackmodule_i *module);
+rimeaddr_t *c_rnd_forward(struct pipe *p, struct stackmodule_i *module);
 
 void c_register_announcement(int i);
 
-void c_received_announcement(struct announcement *a, const rimeaddr_t *from,
-		uint16_t id, uint16_t value);
+void c_received_announcement(struct announcement *a, const rimeaddr_t * from,
+                             uint16_t id, uint16_t value);
 
 #endif /* C_RND_ROUTING_H_ */

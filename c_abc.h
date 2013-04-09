@@ -48,7 +48,9 @@
  */
 /**
  * \file
- *         Header file for the CRime module Composable Anonymous BroadCast (c_abc)
+ *         Header file for the CRime module Composable Anonymous BroadCast (c_abc).
+ *         This module is kept for compatibility (with Rime) reasons, having no
+ *         practical value for CRime.
  * \author
  *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
@@ -56,17 +58,54 @@
 #ifndef __C_ABC_H__
 #define __C_ABC_H__
 
-
+/**
+ * \brief      Set up an anonymous best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_abc connection on the
+ *             specified channel.
+ */
 void c_abc_open(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Close anonymous best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a c_abc
+ *             connection is not needed anymore or by an exit handler.
+ */
 void c_abc_close(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Send a packet using anonymous best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet needs to be sent by
+ *             c_abc. Actually the function doesn't do anything (except
+ *             printing debug messages when necessary).
+ */
 int c_abc_send(struct pipe *p, struct stackmodule_i *module);
-void c_abc_input(struct pipe *p, struct stackmodule_i *module);
-void c_abc_sent(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Receive a packet using anonymous best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet is received by c_abc.
+ */
 void c_abc_recv(struct pipe *p, struct stackmodule_i *module);
 
-void c_start_tm();
-int c_get_start_tm();
-
+/**
+ * \brief      Notification for having sent a packet with anonymous best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been successfully sent by c_abc.
+ */
+void c_abc_sent(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_ABC_H__ */
 /** @} */

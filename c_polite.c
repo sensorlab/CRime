@@ -66,101 +66,118 @@
 #endif /* MIN */
 
 /*---------------------------------------------------------------------------*/
-void c_polite_sent(struct pipe* p, struct stackmodule_i *module) {
-
-	PRINTF("%d.%d: sent status %d num_tx %d\n",
-		 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-		 p->status, p->num_tx);
-}
-
-/*---------------------------------------------------------------------------*/
-void c_polite_open(struct pipe* p, struct stackmodule_i *module) {
-	channel_set_attributes(p->channel_no, p->attrlist);
-	PRINTF("~c_polite_open \n");
-}
-/*---------------------------------------------------------------------------*/
-void c_polite_close(struct pipe* p, struct stackmodule_i *module) {
-	if (module->time_trigger_flg == 1) {
-		ctimer_stop(&module->timer);
-		if (p->buf != NULL) {
-			queuebuf_free(p->buf);
-			p->buf = NULL;
-			module->time_trigger_flg = 0;
-		}
-	}
-	PRINTF("~c_polite_close \n");
-}
-/*---------------------------------------------------------------------------*/
-int c_polite_send(struct pipe* p, struct stackmodule_i *module)
+void
+c_polite_sent(struct pipe *p, struct stackmodule_i *module)
 {
-	PRINTF("c_polite_send \n");
-	  printaddr(module->stack_id);
 
-	if (p->buf != NULL) {
-		/* If we are already about to send a packet, we cancel the old one. */
-		PRINTF("%d.%d: c_polite_send (sender%d.%d): cancel old send\n",
-				p->out_sender.u8[0], p->out_sender.u8[1],
-			   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-		queuebuf_free(p->buf);
-	}
-	p->buf = queuebuf_new_from_packetbuf();
-
-	if(module->trigger_interval == 0) {
-		PRINTF("%d.%d: c_polite_send: interval 0\n",
-			   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-		return 1;
-	 } else {
-		 p->buf = queuebuf_new_from_packetbuf();
-		 if (p->buf != NULL) {
-			 clock_time_t new_trigger = module->trigger_interval / 2
-					 + (random_rand() % (module->trigger_interval / 2));
-			 module->trigger_interval = new_trigger;
-			 PRINTF("~c_polite_send '%s'\n", (char*)queuebuf_dataptr(p->buf));
-			 return 1;
-		 }
-		 PRINTF("%d.%d: ipolite_send: could not allocate queue buffer\n",
-		 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-	}
-	return 0;
+  PRINTF("%d.%d: sent status %d num_tx %d\n",
+         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+         p->status, p->num_tx);
 }
 
-void c_polite_recv(struct pipe* p, struct stackmodule_i *module) {
-	PRINTF("c_polite_recv %s, hdrlen %d \n", (char*)packetbuf_dataptr(),
-			p->channel->hdrsize);
-	  printaddr(module->stack_id);
-
-	p->polite_param.hdrsize = p->channel->hdrsize;
-	if (packetbuf_dataptr() == NULL)
-		return;
-
-	if (p->buf == NULL)
-		return;
-	if (packetbuf_datalen() != queuebuf_datalen(p->buf))
-		return;
-	if (memcmp(packetbuf_dataptr(), queuebuf_dataptr(p->buf),
-			MIN(p->polite_param.hdrsize, packetbuf_datalen())) == 0) {
-		/* We received a copy of our own packet, so we do not send out
-		 packet. */
-		queuebuf_free(p->buf);
-		p->buf = NULL;
-		ctimer_stop(&module->timer);
-		PRINTF("~c_polite_recv: copy of our packet, cancelling \n");
-		if (module->stack_id < STACKNO) {
-			stack_dropped(&stack[module->stack_id]);
-		}
-	}
-}
-
-void c_polite_dropped(struct pipe* p, struct stackmodule_i *module) {
-	 PRINTF("polite dropped \n");
-};
 /*---------------------------------------------------------------------------*/
-void c_polite_cancel(struct pipe* p, struct stackmodule_i *module) {
-	ctimer_stop(&module->timer);
-	if (p->buf != NULL) {
-		queuebuf_free(p->buf);
-		p->buf = NULL;
-	}
+void
+c_polite_open(struct pipe *p, struct stackmodule_i *module)
+{
+  channel_set_attributes(p->channel_no, p->attrlist);
+  PRINTF("~c_polite_open \n");
 }
+
+/*---------------------------------------------------------------------------*/
+void
+c_polite_close(struct pipe *p, struct stackmodule_i *module)
+{
+  if(module->time_trigger_flg == 1) {
+    ctimer_stop(&module->timer);
+    if(p->buf != NULL) {
+      queuebuf_free(p->buf);
+      p->buf = NULL;
+      module->time_trigger_flg = 0;
+    }
+  }
+  PRINTF("~c_polite_close \n");
+}
+
+/*---------------------------------------------------------------------------*/
+int
+c_polite_send(struct pipe *p, struct stackmodule_i *module)
+{
+  PRINTF("c_polite_send \n");
+  printaddr(module->stack_id);
+
+  if(p->buf != NULL) {
+    /* If we are already about to send a packet, we cancel the old one. */
+    PRINTF("%d.%d: c_polite_send (sender%d.%d): cancel old send\n",
+           p->out_sender.u8[0], p->out_sender.u8[1],
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    queuebuf_free(p->buf);
+  }
+  p->buf = queuebuf_new_from_packetbuf();
+
+  if(module->trigger_interval == 0) {
+    PRINTF("%d.%d: c_polite_send: interval 0\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    return 1;
+  } else {
+    p->buf = queuebuf_new_from_packetbuf();
+    if(p->buf != NULL) {
+      clock_time_t new_trigger = module->trigger_interval / 2
+        + (random_rand() % (module->trigger_interval / 2));
+      module->trigger_interval = new_trigger;
+      PRINTF("~c_polite_send '%s'\n", (char *)queuebuf_dataptr(p->buf));
+      return 1;
+    }
+    PRINTF("%d.%d: ipolite_send: could not allocate queue buffer\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+  }
+  return 0;
+}
+
+void
+c_polite_recv(struct pipe *p, struct stackmodule_i *module)
+{
+  PRINTF("c_polite_recv %s, hdrlen %d \n", (char *)packetbuf_dataptr(),
+         p->channel->hdrsize);
+  printaddr(module->stack_id);
+
+  p->polite_param.hdrsize = p->channel->hdrsize;
+  if(packetbuf_dataptr() == NULL)
+    return;
+
+  if(p->buf == NULL)
+    return;
+  if(packetbuf_datalen() != queuebuf_datalen(p->buf))
+    return;
+  if(memcmp(packetbuf_dataptr(), queuebuf_dataptr(p->buf),
+            MIN(p->polite_param.hdrsize, packetbuf_datalen())) == 0) {
+    /* We received a copy of our own packet, so we do not send out
+       packet. */
+    queuebuf_free(p->buf);
+    p->buf = NULL;
+    ctimer_stop(&module->timer);
+    PRINTF("~c_polite_recv: copy of our packet, cancelling \n");
+    if(module->stack_id < STACKNO) {
+      stack_dropped(&stack[module->stack_id]);
+    }
+  }
+}
+
+void
+c_polite_dropped(struct pipe *p, struct stackmodule_i *module)
+{
+  PRINTF("polite dropped \n");
+};
+
+/*---------------------------------------------------------------------------*/
+void
+c_polite_cancel(struct pipe *p, struct stackmodule_i *module)
+{
+  ctimer_stop(&module->timer);
+  if(p->buf != NULL) {
+    queuebuf_free(p->buf);
+    p->buf = NULL;
+  }
+}
+
 /*---------------------------------------------------------------------------*/
 /** @} */

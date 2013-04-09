@@ -59,8 +59,11 @@
 #define __C_TRICKLE_H__
 
 void c_trickle_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_trickle_close(struct pipe *p, struct stackmodule_i *module);
+
 void c_trickle_recv(struct pipe *p, struct stackmodule_i *module);
+
 int c_trickle_send(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_TRICKLE_H__ */

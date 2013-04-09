@@ -72,155 +72,149 @@
 
 //@definedFor c_polite
 struct polite_p {
-	struct ctimer timer;
-	struct queuebuf *q;
-	uint8_t hdrsize;
-	uint8_t maxdups;
-	uint8_t duplicate_no;
-	//int status;
-	//int num_tx;
+  struct ctimer timer;
+  struct queuebuf *q;
+  uint8_t hdrsize;
+  uint8_t maxdups;
+  uint8_t duplicate_no;
+  //int status;
+  //int num_tx;
 };
 
 struct netflood_p {
-	 clock_time_t queue_time;
-	 rimeaddr_t last_originator;
-	 uint8_t last_originator_seq_no;
+  clock_time_t queue_time;
+  rimeaddr_t last_originator;
+  uint8_t last_originator_seq_no;
 };
 
 struct trickle_p {
-	struct ctimer timer, interval_timer, first_transmission_timer;
-	struct pt pt;
-	struct queuebuf *q;
-	clock_time_t interval;
-	uint8_t seq_no;
-	uint8_t interval_scaling;
-	uint8_t duplicate_no;
+  struct ctimer timer, interval_timer, first_transmission_timer;
+  struct pt pt;
+  struct queuebuf *q;
+  clock_time_t interval;
+  uint8_t seq_no;
+  uint8_t interval_scaling;
+  uint8_t duplicate_no;
 };
 
 struct route_discovery_p {
-	struct ctimer timer;
-	clock_time_t timeout;
-	rimeaddr_t last_rreq_originator;
-	uint16_t last_rreq_id;
-	uint16_t rreq_id;
+  struct ctimer timer;
+  clock_time_t timeout;
+  rimeaddr_t last_rreq_originator;
+  uint16_t last_rreq_id;
+  uint16_t rreq_id;
 };
 
 //@definedFor c_multihop
 struct multihop_p {
-	uint8_t hop_no;
+  uint8_t hop_no;
 };
 
 struct mesh_p {
-	 struct queuebuf *queued_data;
-	 rimeaddr_t queued_data_dest;
-	 uint8_t packet_timeout;
+  struct queuebuf *queued_data;
+  rimeaddr_t queued_data_dest;
+  uint8_t packet_timeout;
 };
 
 /* Pipe is a structure containing a channel and the associated vlayer.*/
 struct pipe {
-	struct channel *channel;
-	//vlayer
-	uint16_t channel_no;
-	//@definedFor c_abc, c_broadcast, c_unicast, c_trickle, c_polite, c_unicast
-	struct queuebuf *buf;
-	struct packetbuf_attrlist *attrlist;
-	//@definedFor c_broadcast, c_unicast
-	rimeaddr_t in_sender, out_sender;
-	//@definedFor c_unicast
-	rimeaddr_t in_receiver, out_receiver;
-	//@definedFor c_multihop
-	rimeaddr_t in_esender, out_esender;
-	//@definedFor c_multihop
-	rimeaddr_t in_ereceiver, out_ereceiver;
+  struct channel *channel;
+  //vlayer
+  uint16_t channel_no;
+  //@definedFor c_abc, c_broadcast, c_unicast, c_trickle, c_polite, c_unicast
+  struct queuebuf *buf;
+  struct packetbuf_attrlist *attrlist;
+  //@definedFor c_broadcast, c_unicast
+  rimeaddr_t in_sender, out_sender;
+  //@definedFor c_unicast
+  rimeaddr_t in_receiver, out_receiver;
+  //@definedFor c_multihop
+  rimeaddr_t in_esender, out_esender;
+  //@definedFor c_multihop
+  rimeaddr_t in_ereceiver, out_ereceiver;
 
-	int status;
-	int num_tx;
-	uint8_t seq_no;
-	uint8_t hop_no;
+  int status;
+  int num_tx;
+  uint8_t seq_no;
+  uint8_t hop_no;
 
-	//@defineParams
-	struct polite_p polite_param;
-	struct netflood_p netflood_param;
-	struct trickle_p trickle_param;
-	struct route_discovery_p route_discovery_param;
-	struct multihop_p multihop_param;
-	struct mesh_p mesh_param;
+  //@defineParams
+  struct polite_p polite_param;
+  struct netflood_p netflood_param;
+  struct trickle_p trickle_param;
+  struct route_discovery_p route_discovery_param;
+  struct multihop_p multihop_param;
+  struct mesh_p mesh_param;
 };
 
 struct stackmodule_i {
-	uint8_t stack_id;
-	uint8_t module_id;
-	/* This flag is set to 1 if the module is called when a timer expires. */
-	uint8_t time_trigger_flg;
-	/* This flag is set to 1 if the time trigger associated with the module
-	 * has been initialized. */
-	uint8_t trigger_init_flg;
+  uint8_t stack_id;
+  uint8_t module_id;
+  /* This flag is set to 1 if the module is called when a timer expires. */
+  uint8_t time_trigger_flg;
+  /* This flag is set to 1 if the time trigger associated with the module
+   * has been initialized. */
+  uint8_t trigger_init_flg;
 
-	/* Holds the maximum number of allowed triggers for the module. */
-	uint8_t trigger_no;
-	uint8_t trigger_th;
+  /* Holds the maximum number of allowed triggers for the module. */
+  uint8_t trigger_no;
+  uint8_t trigger_th;
 
-	/* Timer for triggering the module. */
-	//@definedFor c_abc, c_broadcast, c_unicast, c_trickle, c_polite, c_unicast
-	struct ctimer timer;
-	clock_time_t trigger_interval;
+  /* Timer for triggering the module. */
+  //@definedFor c_abc, c_broadcast, c_unicast, c_trickle, c_polite, c_unicast
+  struct ctimer timer;
+  clock_time_t trigger_interval;
 
-	struct stackmodule_i *parent;
+  struct stackmodule_i *parent;
 
-	void (* c_open)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_close)(struct pipe *p, struct stackmodule_i *module);
-	int (* c_send)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_recv)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_sent)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_dropped)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_timed_out)(struct pipe *p, struct stackmodule_i *module);
-	//void (* c_cancelled)(struct pipe *p, struct stackmodule_i *module);
-	//@definedFor c_rnd_routing
-	//@prerequisiteFor c_multihop
-	rimeaddr_t * (* c_forward)(struct pipe *p, struct stackmodule_i *module);
-	int (* c_discover)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_read_chunk)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_write_chunk)(struct pipe *p, struct stackmodule_i *module);
-	void (* c_new_route)(struct pipe *p, struct stackmodule_i *module);
+  void (*c_open) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_close) (struct pipe * p, struct stackmodule_i * module);
+  int (*c_send) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_recv) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_sent) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_dropped) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_timed_out) (struct pipe * p, struct stackmodule_i * module);
+  //void (* c_cancelled)(struct pipe *p, struct stackmodule_i *module);
+  //@definedFor c_rnd_routing
+  //@prerequisiteFor c_multihop
+  rimeaddr_t *(*c_forward) (struct pipe * p, struct stackmodule_i * module);
+  int (*c_discover) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_read_chunk) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_write_chunk) (struct pipe * p, struct stackmodule_i * module);
+  void (*c_new_route) (struct pipe * p, struct stackmodule_i * module);
 };
 
-void c_close(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_close(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_open(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_open(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_recv(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_recv(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-int c_send(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+int c_send(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_sent(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_sent(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_dropped(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_dropped(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_discover(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_discover(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
-void c_timed_out(struct pipe *p,
-		struct stackmodule_i *module, uint8_t len);
+void c_timed_out(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
 struct trigger_param {
-		//struct pipe *pip;
-		//struct stackmodule_i *amodule;
-		char* buf;
-		uint8_t stackidx;
-		uint8_t modidx;
-		uint8_t triggerno;
-	} param;
+  //struct pipe *pip;
+  //struct stackmodule_i *amodule;
+  char *buf;
+  uint8_t stackidx;
+  uint8_t modidx;
+  uint8_t triggerno;
+} param;
 
 void c_triggered_send(struct trigger_param *param);
 
-void set_amodule_trigger(int stackIdx, char* buf);
-void set_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid, rimeaddr_t* addr);
-rimeaddr_t* get_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid);
+void set_amodule_trigger(int stackIdx, char *buf);
+
+void set_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid,
+                   rimeaddr_t * addr);
+rimeaddr_t *get_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid);
 
 #endif /* __AMODULE_H__ */

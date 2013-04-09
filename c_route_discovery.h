@@ -117,9 +117,13 @@
 #define ROUTE_DISCOVERY_ENTRIES 8
 
 void c_route_discovery_open(struct pipe *p, struct stackmodule_i *module);
+
 int c_route_discovery_discover(struct pipe *p, struct stackmodule_i *module);
+
 void c_route_discovery_close(struct pipe *p, struct stackmodule_i *module);
+
 void c_route_discovery_recv(struct pipe *p, struct stackmodule_i *module);
+
 void c_route_discovery_timedout(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_ROUTE_DISCOVERY_H__ */

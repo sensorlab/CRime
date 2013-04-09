@@ -1,11 +1,10 @@
 /**
- * \addtogroup rimeabc
+ * \addtogroup crimecabc
  * @{
  */
 
-
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +31,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
+ * Author: Carolina Fortuna <carolina.fortuna@ijs.si>
  *
- * $Id: abc.c,v 1.20 2010/02/23 18:38:05 adamdunkels Exp $
+ * $Id: c_abc.c,v 0.0 2013/03/06 18:38:05 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Anonymous best-effort local area Broad Cast (abc)
+ *         Composable Anonymous best-effort local area Broad Cast (c_abc)
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #include "contiki-net.h"
 #include "net/rime.h"
-
 #include "vsntime.h"
-
 
 #define DEBUG 0
 #if DEBUG
@@ -60,86 +56,76 @@
 #define PRINTF(...)
 #endif
 
-//int startTm1 = 0;
+#define EVAL 1
+#if EVAL
+#include <stdio.h>
+#define START_TM vsnTime_freeRunTime()
+#define DURATION_TM(x) vsnTime_freeRunTimeDiff(x)
+#define PRINTFE(...) printf(__VA_ARGS__)
+#else
+#define START_TM 0
+#define DURATION_TM(x) 0
+#define PRINTFE(...)
+#endif
 
-void
-c_abc_open(struct pipe *p, struct stackmodule_i *module)
-{
-  //int startTm = vsnTime_freeRunTime();
-
-  channel_set_attributes(p->channel->channelno, p->channel->attrlist);
-  p->channel->hdrsize = chameleon_hdrsize(p->channel->attrlist);
-  PRINTF("~c_abc_open \n");
-
-  //int stopTm = vsnTime_freeRunTimeDiff(startTm);
-  //printf("abco %d, ", stopTm);
+/**
+ * \brief      Set up an anonymous best-effort broadcast connection
+ * \param c    A pointer to a struct abc_conn
+ * \param channel The channel on which the connection will operate
+ * \param u    A struct abc_callbacks with function pointers to functions that will be called when a packet has been received
+ *
+ *             This function sets up an abc connection on the
+ *             specified channel. The caller must have allocated the
+ *             memory for the struct abc_conn, usually by declaring it
+ *             as a static variable.
+ *
+ *             The struct abc_callbacks pointer must point to a structure
+ *             containing a pointer to a function that will be called
+ *             when a packet arrives on the channel.
+ *
+ */
+void c_abc_open(struct pipe *p, struct stackmodule_i *module) {
+	int start_tm = START_TM;
+	channel_set_attributes(p->channel->channelno, p->channel->attrlist);
+	p->channel->hdrsize = chameleon_hdrsize(p->channel->attrlist);
+	PRINTF("~c_abc_open \n");
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
+
 /*---------------------------------------------------------------------------*/
 void c_abc_close(struct pipe *p, struct stackmodule_i *module) {
-
-	 //int startTm = vsnTime_freeRunTime();
+	int start_tm = START_TM;
 	PRINTF("~c_abc_close \n");
-	//int stopTm = vsnTime_freeRunTimeDiff(startTm);
-	  //printf("abc %d, ", stopTm);
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
+
 /*---------------------------------------------------------------------------*/
-int
-c_abc_send(struct pipe *p, struct stackmodule_i *module)
-{
-	//int startTm = vsnTime_freeRunTime();
-
-  PRINTF("~c_abc_send: packet '%s' on channel %d hdrsize %d\n",
-	 (char *) packetbuf_dataptr(), p->channel->channelno, p->channel->hdrsize);
-    printaddr(module->stack_id);
-
-    //int stopTm = vsnTime_freeRunTimeDiff(startTm);
-    //printf("%d, ", stopTm);
-  return 1;
+int c_abc_send(struct pipe *p, struct stackmodule_i *module) {
+	int start_tm = START_TM;
+	PRINTF("~c_abc_send: packet '%s' on channel %d hdrsize %d\n",
+			(char *)packetbuf_dataptr(), p->channel->channelno,
+			p->channel->hdrsize);
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
+	return 1;
 }
-/*---------------------------------------------------------------------------*/
-void
-c_abc_input(struct pipe *p, struct stackmodule_i *module)
-{
-	 //int startTm = vsnTime_freeRunTime();
 
-  PRINTF("~c_abc_input: packet '%s' on channel %d\n",
-     (char *) packetbuf_dataptr(), p->channel->channelno);
-
-  //int stopTm = vsnTime_freeRunTimeDiff(startTm);
-   //printf("abcin %d, ", stopTm);
-}
 /*---------------------------------------------------------------------------*/
-void
-c_abc_sent(struct pipe *p, struct stackmodule_i *module)
-{
-  PRINTF("~c_abc_sent: after %d transmissions\n",
-	 p->num_tx);
-}
-/*---------------------------------------------------------------------------*/
-void
-c_abc_recv(struct pipe *p, struct stackmodule_i *module)
-{
-	 //int startTm = vsnTime_freeRunTime();
-
+void c_abc_recv(struct pipe *p, struct stackmodule_i *module) {
+	int start_tm = START_TM;
 	rimeaddr_t tmpaddr;
+
 	rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_SENDER));
 	set_node_addr(module->stack_id, 1, 0, &tmpaddr);
-	 PRINTF("~c_abc_receive: packet %.*s (%d) on channel %d from %d.%d\n",
-			 packetbuf_datalen(), (char *)packetbuf_dataptr(),
-			 packetbuf_datalen(), p->channel->channelno,
-	     tmpaddr.u8[0], tmpaddr.u8[1]);
-	 //printaddr(module->stack_id);
-
-
-	 //int stopTm = vsnTime_freeRunTimeDiff(startTm);
-	  //printf("abcr %d, ", stopTm);
+	PRINTF("~c_abc_receive: packet %.*s (%d) on channel %d from %d.%d\n",
+			packetbuf_datalen(), (char *)packetbuf_dataptr(),
+			packetbuf_datalen(), p->channel->channelno,
+			tmpaddr.u8[0], tmpaddr.u8[1]);
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
 
-void c_start_tm(){
-	//startTm1 = vsnTime_freeRunTime();
-}
-int c_get_start_tm(){
-	//return startTm1;
+/*---------------------------------------------------------------------------*/
+void c_abc_sent(struct pipe *p, struct stackmodule_i *module) {
+	PRINTF("~c_abc_sent: after %d transmissions\n", p->num_tx);
 }
 
 /** @} */

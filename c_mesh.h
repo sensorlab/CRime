@@ -71,11 +71,17 @@
  */
 
 void c_mesh_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_mesh_close(struct pipe *p, struct stackmodule_i *module);
+
 int c_mesh_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_mesh_recv(struct pipe *p, struct stackmodule_i *module);
+
 void c_mesh_sent(struct pipe *p, struct stackmodule_i *module);
-rimeaddr_t * c_mesh_forward(struct pipe *p, struct stackmodule_i *module);
+
+rimeaddr_t *c_mesh_forward(struct pipe *p, struct stackmodule_i *module);
+
 void c_mesh_timedout(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_MESH_H__ */

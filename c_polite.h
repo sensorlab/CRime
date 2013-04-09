@@ -23,7 +23,7 @@
  *             packet is received, or when another event occurs on the
  *             connection (see \ref "struct polite_callbacks").
  */
-void c_polite_open(struct pipe* p, struct stackmodule_i *module);
+void c_polite_open(struct pipe *p, struct stackmodule_i *module);
 
 /**
  * \brief      Close a polite connection
@@ -32,7 +32,7 @@ void c_polite_open(struct pipe* p, struct stackmodule_i *module);
  *             This function closes a polite connection that has
  *             previously been opened with polite_open().
  */
-void c_polite_close(struct pipe* p, struct stackmodule_i *module);
+void c_polite_close(struct pipe *p, struct stackmodule_i *module);
 
 
 /**
@@ -47,9 +47,10 @@ void c_polite_close(struct pipe* p, struct stackmodule_i *module);
  *             received with the same header.
  *
  */
-int  c_polite_send(struct pipe* p, struct stackmodule_i *module);
+int c_polite_send(struct pipe *p, struct stackmodule_i *module);
 
-void c_polite_recv(struct pipe* p, struct stackmodule_i *module);
+void c_polite_recv(struct pipe *p, struct stackmodule_i *module);
+
 /**
  * \brief      Cancel a pending packet
  * \param c    A pointer to a struct polite_conn that has previously been opened with polite_open().
@@ -57,9 +58,11 @@ void c_polite_recv(struct pipe* p, struct stackmodule_i *module);
  *             This function cancels a pending transmission that has
  *             previously been started with polite_send().
  */
-void  c_polite_sent(struct pipe* p, struct stackmodule_i *module);
-void c_polite_cancel(struct pipe* p, struct stackmodule_i *module);
-void c_polite_dropped(struct pipe* p, struct stackmodule_i *module);
+void c_polite_sent(struct pipe *p, struct stackmodule_i *module);
+
+void c_polite_cancel(struct pipe *p, struct stackmodule_i *module);
+
+void c_polite_dropped(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* C_POLITE_H_ */
 

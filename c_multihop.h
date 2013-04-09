@@ -74,10 +74,15 @@
 #include "net/rime/rimeaddr.h"
 
 void c_multihop_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_multihop_close(struct pipe *p, struct stackmodule_i *module);
+
 int c_multihop_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_multihop_recv(struct pipe *p, struct stackmodule_i *module);
-rimeaddr_t * c_multihop_forward(struct pipe *p, struct stackmodule_i *module);
+
+rimeaddr_t *c_multihop_forward(struct pipe *p, struct stackmodule_i *module);
+
 void c_multihop_sent(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_MULTIHOP_H__ */
@@ -146,4 +151,3 @@ void c_multihop_sent(struct pipe *p, struct stackmodule_i *module);
 //turtle crime:trigger_th rdf:type owls:Parameter .
 //turtle crime:c_multihop crime:hasParameter crime:trigger_th .
 //turtle crime:trigger_th crime:isUserSetByOptional crime:c_multihop .
-

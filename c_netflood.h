@@ -81,11 +81,17 @@
 
 
 void c_netflood_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_netflood_close(struct pipe *p, struct stackmodule_i *module);
+
 void c_netflood_recv(struct pipe *p, struct stackmodule_i *module);
+
 int c_netflood_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_netflood_sent(struct pipe *p, struct stackmodule_i *module);
+
 void c_netflood_dropped(struct pipe *p, struct stackmodule_i *module);
+
 void c_netflood_cancel(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_NETFLOOD_H__ */

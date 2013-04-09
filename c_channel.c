@@ -53,28 +53,52 @@
 #define PRINTF(...)
 #endif
 
+
+#define EVAL 0
+#if EVAL
+#include <stdio.h>
+#define START_TM vsnTime_freeRunTime()
+#define DURATION_TM(x) vsnTime_freeRunTimeDiff(x)
+#define PRINTFE(...) printf(__VA_ARGS__)
+#else
+#define START_TM 0
+#define DURATION_TM(x) 0
+#define PRINTFE(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 void
 c_channel_open(struct pipe *p, struct stackmodule_i *module)
 {
-	int startTm = vsnTime_freeRunTime();
+  int startTm = vsnTime_freeRunTime();
 
-	channel_open(p->channel, p->channel_no);
-	PRINTF("~c_channel_open: chno %d %d \n", p->channel->channelno, p->channel_no);
+  channel_open(p->channel, p->channel_no);
+  PRINTF("~c_channel_open: chno %d %d \n", p->channel->channelno,
+         p->channel_no);
 
-	int stopTm = vsnTime_freeRunTimeDiff(startTm);
-	  printf("cho %d, ", stopTm);
+  int stopTm = vsnTime_freeRunTimeDiff(startTm);
+
+  printf("cho %d, ", stopTm);
 }
+
 /*---------------------------------------------------------------------------*/
 void
 c_channel_close(struct pipe *p, struct stackmodule_i *module)
 {
-	int startTm = vsnTime_freeRunTime();
+  int startTm = vsnTime_freeRunTime();
 
-	channel_close(p->channel);
-	PRINTF("~c_channel_close \n");
+  channel_close(p->channel);
+  PRINTF("~c_channel_close \n");
 
-	int stopTm = vsnTime_freeRunTimeDiff(startTm);
-	  printf("chc%d, ", stopTm);
+  int stopTm = vsnTime_freeRunTimeDiff(startTm);
+
+  printf("chc%d, ", stopTm);
 }
+
 /*---------------------------------------------------------------------------*/
+void c_abc_input(struct pipe *p, struct stackmodule_i *module) {
+	int start_tm = START_TM;
+	PRINTF("~c_abc_input: packet '%s' on channel %d\n",
+			(char *)packetbuf_dataptr(), p->channel->channelno);
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
+}

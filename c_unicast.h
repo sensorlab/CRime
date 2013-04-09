@@ -119,9 +119,13 @@
 
 
 void c_unicast_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_unicast_close(struct pipe *p, struct stackmodule_i *module);
+
 int c_unicast_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_unicast_recv(struct pipe *p, struct stackmodule_i *module);
+
 void c_unicast_sent(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_UNICAST_H__ */

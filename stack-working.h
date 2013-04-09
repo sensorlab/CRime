@@ -49,27 +49,36 @@
 #define ERECEIVER 3
 
 static uint8_t STACKNO = 3;
+
 //@defFor all
 static uint8_t MAIN_STACK_ID = 0;
+
 //@defFor c_route_discovery
 static uint8_t RREQ_STACK_ID = 1;
+
 //@defFor c_route_discovery
 static uint8_t RREP_STACK_ID = 2;
 
 struct stack_i {
-	struct pipe *pip;
-	struct stackmodule_i *amodule;
-	uint8_t modno;
+  struct pipe *pip;
+  struct stackmodule_i *amodule;
+  uint8_t modno;
 };
 
 struct stack_i *stack;
 
 void printaddr(int stack_id);
+
 void stack_init();
+
 void stack_open(struct stack_i *stack);
+
 void stack_close(struct stack_i *stack);
+
 int stack_send(struct stack_i *stack, uint8_t moduleid);
+
 void stack_recv(struct stack_i *stack);
+
 void stack_dropped(struct stack_i *stack);
 
 #endif /* STACK_H_ */

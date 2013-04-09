@@ -96,7 +96,9 @@ void c_broadcast_close(struct pipe *p, struct stackmodule_i *module);
  *
  */
 int c_broadcast_send(struct pipe *p, struct stackmodule_i *module);
+
 void c_broadcast_recv(struct pipe *p, struct stackmodule_i *module);
+
 void c_broadcast_sent(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_BROADCAST_H__ */

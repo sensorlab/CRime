@@ -71,6 +71,9 @@
 #include "net/rime/crime/amodule.h"
 
 void c_channel_open(struct pipe *p, struct stackmodule_i *module);
+
 void c_channel_close(struct pipe *p, struct stackmodule_i *module);
+
+void c_abc_input(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_CHANNEL_H__ */

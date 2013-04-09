@@ -57,24 +57,29 @@
 #define PRINTF(...)
 #endif
 
-void c_unicast_close(struct pipe *p, struct stackmodule_i *module){
-	PRINTF("c_unicast_close\n");
+void
+c_unicast_close(struct pipe *p, struct stackmodule_i *module)
+{
+  PRINTF("c_unicast_close\n");
 }
+
 /*---------------------------------------------------------------------------*/
 void
 c_unicast_open(struct pipe *p, struct stackmodule_i *module)
 {
-	 channel_set_attributes(p->channel_no, p->attrlist);
-	  PRINTF("c_unicast_open\n");
+  channel_set_attributes(p->channel_no, p->attrlist);
+  PRINTF("c_unicast_open\n");
 }
+
 /*---------------------------------------------------------------------------*/
 int
 c_unicast_send(struct pipe *p, struct stackmodule_i *module)
 {
-	PRINTF("c_unicast_send \n");
-	printaddr(module->stack_id);
+  PRINTF("c_unicast_send \n");
+  printaddr(module->stack_id);
 
-	rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 2);
+  rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 2);
+
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, tmpaddr);
   return 1;
 }
@@ -83,28 +88,32 @@ c_unicast_send(struct pipe *p, struct stackmodule_i *module)
 void
 c_unicast_recv(struct pipe *p, struct stackmodule_i *module)
 {
-	 PRINTF("c_unicast_recv \n");
-	rimeaddr_t tmpaddr;
-	rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-	set_node_addr(module->stack_id, 1, 2, &tmpaddr);
+  PRINTF("c_unicast_recv \n");
+  rimeaddr_t tmpaddr;
+
+  rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+  set_node_addr(module->stack_id, 1, 2, &tmpaddr);
   printaddr(module->stack_id);
 
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
-	  PRINTF("c_unicast_recv: %d.%d received packet from %d.%d\n",
-	  	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	  	 packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
-	  	 packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
+  if(rimeaddr_cmp
+     (packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
+    PRINTF("c_unicast_recv: %d.%d received packet from %d.%d\n",
+           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+           packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
+           packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
   }
   PRINTF("~c_unicast_recv \n");
 }
+
 /*---------------------------------------------------------------------------*/
 void
 c_unicast_sent(struct pipe *p, struct stackmodule_i *module)
 {
-	  PRINTF("c_unicast_sent: %d.%d to %d.%d\n",
-	  	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	  	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
-	  	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
+  PRINTF("c_unicast_sent: %d.%d to %d.%d\n",
+         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+         packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+         packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 }
+
 /*---------------------------------------------------------------------------*/
 /** @} */
