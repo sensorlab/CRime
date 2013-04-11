@@ -4,10 +4,10 @@
  */
 
 /**
- * \defgroup crime c_abc Anonymous best-effort local area broadcast
+ * \defgroup crimec_abc Composable Anonymous best-effort local area broadcast
  * @{
  *
- * The c_abc module sends packets to all local area neighbors. The abc
+ * The c_abc module sends packets to all local area neighbors. The c_abc
  * module adds no headers to outgoing packets.
  *
  * \section channels Channels

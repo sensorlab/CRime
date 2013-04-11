@@ -1,5 +1,22 @@
+/**
+ * \addtogroup crime
+ * @{
+ */
+
+/**
+ * \defgroup crimec_channel Composable Cannel abstraction for CRime
+ * @{
+ *
+ * The c_channel module abstracts the channel and has no influence on the packets.
+ *
+ * \section channels Channels
+ *
+ * The c_channel module uses 1 channel.
+ *
+ */
+
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,20 +43,57 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: channel.h,v 1.3 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for Rime's channel abstraction
+ *         Header file for CRime's Composable Channel abstraction
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #ifndef __C_CHANNEL_H__
 #define __C_CHANNEL_H__
+
+#include "contiki-conf.h"
+#include "net/packetbuf.h"
+#include "net/rime/chameleon.h"
+#include "net/rime/crime/amodule.h"
+
+/**
+ * \brief      Open a CRime channel.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up a c_channel by specifying the channel.
+ *
+ */
+void c_channel_open(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Close a CRime channel.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function closes a c_channel.
+ *
+ */
+void c_channel_close(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Receive a CRime packet.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function receives a packet.
+ *
+ */
+void c_abc_input(struct pipe *p, struct stackmodule_i *module);
+
+#endif /* __C_CHANNEL_H__ */
+/** @} */
+/** @} */
 
 //turtle crime:c_channel rdf:type cpan:Module .
 //turtle crime:c_channel rdfs:comment The channel module is the basic module of any stack and ensures the proper opening and closing of a communication channel. The value of the communication channel must be provided by the user as input. .
@@ -64,16 +118,3 @@
 //turtle crime:channel_no rdf:type owls:Parameter .
 //turtle crime:c_channel crime:hasParameter crime:channel_no .
 //turtle crime:channel_no crime:isUserSetBy crime:c_channel .
-
-#include "contiki-conf.h"
-#include "net/packetbuf.h"
-#include "net/rime/chameleon.h"
-#include "net/rime/crime/amodule.h"
-
-void c_channel_open(struct pipe *p, struct stackmodule_i *module);
-
-void c_channel_close(struct pipe *p, struct stackmodule_i *module);
-
-void c_abc_input(struct pipe *p, struct stackmodule_i *module);
-
-#endif /* __C_CHANNEL_H__ */

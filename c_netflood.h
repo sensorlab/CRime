@@ -1,16 +1,16 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup rimenetflood Best-effort network flooding
+ * \defgroup crimec_netflood Composable best-effort network flooding
  * @{
  *
- * The netflood module does best-effort flooding.
+  * The netflood module does best-effort flooding.
  *
- * The netflood primitive sends a single packet to all nodes in the
- * network. The netflood primitive uses polite broadcasts at every hop
+ * The c_netflood primitive sends a single packet to all nodes in the
+ * network. The netflood primitive may use c_polite broadcasts at every hop
  * to reduce the number of redundant transmissions.  The netflood
  * primitive does not perform retransmissions of flooded packets and
  * packets are not tagged with version numbers.  Instead, the netflood
@@ -33,7 +33,7 @@
  */
 
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,16 +60,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: netflood.h,v 1.7 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the best-effort network flooding (netflood)
+ *         Header file for the CRime module Composeable Mesh routing protocol.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #ifndef __C_NETFLOOD_H__
@@ -79,19 +78,72 @@
 #include "net/rime/crime/amodule.h"
 #include "net/rime/crime/stack.h"
 
-
+/**
+ * \brief      Set up the connections required for the netflood service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_netflood connection.
+ *
+ */
 void c_netflood_open(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Close the connections required for the netflood service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a c_netflood connection is
+ *             not needed anymore or by an exit handler.
+ */
 void c_netflood_close(struct pipe *p, struct stackmodule_i *module);
 
-void c_netflood_recv(struct pipe *p, struct stackmodule_i *module);
-
+/**
+ * \brief      Send a packet using the netflood primitive.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has to be sent by c_netflood.
+ */
 int c_netflood_send(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Receive a packet using the netflood primitive.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been received by
+ *             c_netflood.
+ *
+ */
+void c_netflood_recv(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Notification for having sent a packet with the netflood primitive
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been successfully sent by c_netflood.
+ */
 void c_netflood_sent(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Notification that the netflood primitive dropped a packet
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been dropped c_netflood.
+ */
 void c_netflood_dropped(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Notification that the netflood primitive canceled the transmission of a packet
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet transmission has been
+ *             canceled by c_netflood.
+ */
 void c_netflood_cancel(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_NETFLOOD_H__ */

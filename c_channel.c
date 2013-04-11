@@ -1,5 +1,22 @@
+/**
+ * \addtogroup crimec_abc
+ * @{
+ */
+
+/**
+ * \defgroup crime c_channel Cannel abstraction for CRime
+ * @{
+ *
+ * The c_channel module abstracts the channel and has no influence on the packets.
+ *
+ * \section channels Channels
+ *
+ * The c_channel module uses 1 channel.
+ *
+ */
+
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,16 +43,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: channel.c,v 1.3 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Rime's channel abstraction
+ *        File for CRime's channel abstraction
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #include "net/rime/chameleon.h"
@@ -70,35 +85,32 @@
 void
 c_channel_open(struct pipe *p, struct stackmodule_i *module)
 {
-  int startTm = vsnTime_freeRunTime();
-
-  channel_open(p->channel, p->channel_no);
-  PRINTF("~c_channel_open: chno %d %d \n", p->channel->channelno,
+	int start_tm = START_TM;
+	channel_open(p->channel, p->channel_no);
+	PRINTF("~c_channel_open: chno %d %d \n", p->channel->channelno,
          p->channel_no);
-
-  int stopTm = vsnTime_freeRunTimeDiff(startTm);
-
-  printf("cho %d, ", stopTm);
+	PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
 
 /*---------------------------------------------------------------------------*/
 void
 c_channel_close(struct pipe *p, struct stackmodule_i *module)
 {
-  int startTm = vsnTime_freeRunTime();
-
-  channel_close(p->channel);
-  PRINTF("~c_channel_close \n");
-
-  int stopTm = vsnTime_freeRunTimeDiff(startTm);
-
-  printf("chc%d, ", stopTm);
+	int start_tm = START_TM;
+	channel_close(p->channel);
+    PRINTF("~c_channel_close \n");
+    PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
 
 /*---------------------------------------------------------------------------*/
-void c_abc_input(struct pipe *p, struct stackmodule_i *module) {
+void c_abc_input(struct pipe *p, struct stackmodule_i *module)
+{
 	int start_tm = START_TM;
 	PRINTF("~c_abc_input: packet '%s' on channel %d\n",
 			(char *)packetbuf_dataptr(), p->channel->channelno);
 	PRINTFE("\n %d \n", DURATION_TM(start_tm));
 }
+/*---------------------------------------------------------------------------*/
+
+/** @} */
+/** @} */

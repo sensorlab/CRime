@@ -1,11 +1,27 @@
-
 /**
- * \addtogroup rimeuc
+ * \addtogroup crime
  * @{
  */
 
+/**
+ * \defgroup crimec_unicast Single-hop unicast
+ * @{
+ *
+ * The c_unicast module sends a packet to an identified single-hop
+ * neighbor.  The unicast primitive adds the single-hop receiver
+ * address attribute to the outgoing packets. For incoming packets,
+ * the unicast module inspects the single-hop receiver address
+ * attribute and discards the packet if the address does not match
+ * the address of the node.
+ *
+ * \section channels Channels
+ *
+ * The c_unicast module uses 1 channel.
+ *
+ */
+
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +48,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: unicast.c,v 1.4 2010/02/23 18:38:05 adamdunkels Exp $
  */
-
 /**
  * \file
- *         Single-hop unicast
+ *         File for the CRime module Composable Anonymous BroadCast (c_abc).
+ *         This module is kept for compatibility (with Rime) reasons, having no
+ *         practical value for CRime.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
+
 
 #include "net/rime.h"
 #include "net/rime/crime/c_unicast.h"
@@ -57,6 +73,18 @@
 #define PRINTF(...)
 #endif
 
+#define EVAL 0
+#if EVAL
+#include <stdio.h>
+#define START_TM vsnTime_freeRunTime()
+#define DURATION_TM(x) vsnTime_freeRunTimeDiff(x)
+#define PRINTFE(...) printf(__VA_ARGS__)
+#else
+#define START_TM 0
+#define DURATION_TM(x) 0
+#define PRINTFE(...)
+#endif
+
 void
 c_unicast_close(struct pipe *p, struct stackmodule_i *module)
 {
@@ -64,6 +92,7 @@ c_unicast_close(struct pipe *p, struct stackmodule_i *module)
 }
 
 /*---------------------------------------------------------------------------*/
+
 void
 c_unicast_open(struct pipe *p, struct stackmodule_i *module)
 {
@@ -72,19 +101,17 @@ c_unicast_open(struct pipe *p, struct stackmodule_i *module)
 }
 
 /*---------------------------------------------------------------------------*/
+
 int
 c_unicast_send(struct pipe *p, struct stackmodule_i *module)
 {
   PRINTF("c_unicast_send \n");
-  printaddr(module->stack_id);
-
   rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 2);
-
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, tmpaddr);
   return 1;
 }
-
 /*---------------------------------------------------------------------------*/
+
 void
 c_unicast_recv(struct pipe *p, struct stackmodule_i *module)
 {
@@ -93,7 +120,6 @@ c_unicast_recv(struct pipe *p, struct stackmodule_i *module)
 
   rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   set_node_addr(module->stack_id, 1, 2, &tmpaddr);
-  printaddr(module->stack_id);
 
   if(rimeaddr_cmp
      (packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
@@ -116,4 +142,5 @@ c_unicast_sent(struct pipe *p, struct stackmodule_i *module)
 }
 
 /*---------------------------------------------------------------------------*/
+/** @} */
 /** @} */

@@ -1,22 +1,22 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup trickle Reliable single-source multi-hop flooding
+ * \defgroup crimec_netflood Composable reliable single-source multi-hop flooding
  * @{
  *
  * The trickle module sends a single packet to all nodes on the network.
  *
  * \section channels Channels
  *
- * The trickle module uses 1 channel.
+ * The netflood module uses 1 channel.
  *
  */
 
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,28 +43,61 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.13 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for Trickle (reliable single source flooding) for Rime
+ *         Header file for the CRime module Composeable reliable single-source multi-hop flooding.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #ifndef __C_TRICKLE_H__
 #define __C_TRICKLE_H__
 
+/**
+ * \brief      Set up the connections required for the trickle service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_trickle connection.
+ *
+ */
 void c_trickle_open(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Close the connections required for the trickle service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a c_trickle connection is
+ *             not needed anymore or by an exit handler.
+ */
 void c_trickle_close(struct pipe *p, struct stackmodule_i *module);
 
-void c_trickle_recv(struct pipe *p, struct stackmodule_i *module);
-
+/**
+ * \brief      Send a packet using the trickle primitive.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet needs to be sent by
+ *             c_trickle.
+ *
+ */
 int c_trickle_send(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Receive a packet using the trickle primitive.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been received by
+ *             c_trickle.
+ *
+ */
+void c_trickle_recv(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_TRICKLE_H__ */
 /** @} */

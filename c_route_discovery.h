@@ -1,22 +1,24 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup routediscovery Rime route discovery protocol
+ * \defgroup crimec_netflood Composable route discovery protocol
  * @{
  *
- * The route-discovery module does route discovery for Rime.
+ * The c_route_discovery module does route discovery for CRime.
  *
  * \section channels Channels
  *
- * The ibc module uses 2 channels; one for the flooded route request
- * packets and one for the unicast route replies.
+ * The c_route_discovery module typically uses 2 channels;
+ * one for the flooded route request packets and
+ * one for the unicast route replies.
  *
  */
+
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,20 +45,84 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.11 2010/06/18 08:28:56 nifi Exp $
  */
 
 /**
  * \file
- *         Header file for the Rime mesh routing protocol
+ *         Header file for the CRime module Composeable route discovery protocol.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
+
 
 #ifndef __C_ROUTE_DISCOVERY_H__
 #define __C_ROUTE_DISCOVERY_H__
+
+
+#include "net/rime/unicast.h"
+#include "net/rime/netflood.h"
+#include "sys/ctimer.h"
+
+#define ROUTE_DISCOVERY_ENTRIES 8
+
+/**
+ * \brief      Set up the connections required for the route discovery protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_route_discovery connections.
+ *
+ */
+void c_route_discovery_open(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Close the connections required for the route discovery protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a c_route_discovery connection is
+ *             not needed anymore or by an exit handler.
+ */
+void c_route_discovery_close(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Start the route discovery procedure by asking for information.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a route needs to be discovered
+ *             by the c_route_discovery.
+ */
+int c_route_discovery_discover(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Receive a packet using the route discovery protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been received by
+ *             c_route_discovery.
+ *
+ */
+void c_route_discovery_recv(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Notification that the request for a route has timeout
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when the request for a route
+ *             by the route_discovery protocol has time out without
+ *             receiving route info.
+ */
+void c_route_discovery_timedout(struct pipe *p, struct stackmodule_i *module);
+
+#endif /* __C_ROUTE_DISCOVERY_H__ */
+/** @} */
+/** @} */
+
 
 //turtle crime:c_route_discovery rdf:type cpan:Module .
 //turtle crime:c_route_discovery rdfs:comment The route-discovery module does route discovery for Rime. It uses 2 channels; one for the flooded route request packets and one for the unicast route replies. .
@@ -107,25 +173,3 @@
 //turtle crime:trigger_th rdf:type owls:Parameter .
 //turtle crime:c_route_discovery crime:hasParameter crime:trigger_th .
 //turtle crime:trigger_th crime:isUserSetByOptional crime:c_route_discovery .
-
-
-
-#include "net/rime/unicast.h"
-#include "net/rime/netflood.h"
-#include "sys/ctimer.h"
-
-#define ROUTE_DISCOVERY_ENTRIES 8
-
-void c_route_discovery_open(struct pipe *p, struct stackmodule_i *module);
-
-int c_route_discovery_discover(struct pipe *p, struct stackmodule_i *module);
-
-void c_route_discovery_close(struct pipe *p, struct stackmodule_i *module);
-
-void c_route_discovery_recv(struct pipe *p, struct stackmodule_i *module);
-
-void c_route_discovery_timedout(struct pipe *p, struct stackmodule_i *module);
-
-#endif /* __C_ROUTE_DISCOVERY_H__ */
-/** @} */
-/** @} */

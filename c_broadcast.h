@@ -1,21 +1,18 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup rimeibc Best-effort local area broadcast
+ * \defgroup crimec_broadcast Composable Identified best-effort local area broadcast
  * @{
  *
- * The broadcast module sends packets to all local area neighbors with an a
+ * The c_broadcast module sends packets to all local area neighbors with a
  * header that identifies the sender.
  *
  * The broadcast module sends a packet to all local neighbors.  The
  * module adds the single-hop sender address as a packet attribute to
- * outgoing packets.  All Rime primitives that need the identity of
- * the sender in the outgoing packets use the broadcast primitive,
- * either directly or indirectly through any of the other
- * communication primitives that are based on the broadcast primitive.
+ * outgoing packets.
  *
  * \section channels Channels
  *
@@ -24,7 +21,7 @@
  */
 
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,54 +48,68 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.h,v 1.5 2010/02/23 18:38:05 adamdunkels Exp $
  */
-
 /**
  * \file
- *         Header file for identified best-effort local area broadcast
+ *         Header file for the CRime module Composable Identified BroadCast (c_broadcast).
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
+
 
 #ifndef __C_BROADCAST_H__
 #define __C_BROADCAST_H__
 
 #include "net/rime/rimeaddr.h"
 
+/**
+ * \brief      Set up an identified best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_broadcast connection on the
+ *             specified channel.
+ */
 void c_broadcast_open(struct pipe *p, struct stackmodule_i *module);
 
 /**
- * \brief      Close a broadcast connection
- * \param c    A pointer to a struct broadcast_conn
+ * \brief      Close identified best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
  *
- *             This function closes a broadcast connection that has
- *             previously been opened with broadcast_open().
- *
- *             This function typically is called as an exit handler.
- *
+ *             This function is called when a c_broadcast
+ *             connection is not needed anymore or by an exit handler.
  */
 void c_broadcast_close(struct pipe *p, struct stackmodule_i *module);
 
 /**
- * \brief      Send an identified best-effort broadcast packet
- * \param c    The broadcast connection on which the packet should be sent
- * \retval     Non-zero if the packet could be sent, zero otherwise
+ * \brief      Send a packet using identified best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
  *
- *             This function sends an identified best-effort broadcast
- *             packet. The packet must be present in the packetbuf
- *             before this function is called.
- *
- *             The parameter c must point to a broadcast connection that
- *             must have previously been set up with broadcast_open().
- *
+ *             This function is called when a packet needs to be sent by
+ *             c_broadcast.
  */
 int c_broadcast_send(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Receive a packet using identified best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has to be sent by c_broadcast.
+ */
 void c_broadcast_recv(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Notification for having sent a packet with identified best-effort broadcast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been successfully sent by c_broadcast.
+ */
 void c_broadcast_sent(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_BROADCAST_H__ */

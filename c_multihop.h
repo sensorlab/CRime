@@ -1,16 +1,16 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup rimemultihop Best-effort multihop forwarding
+ * \defgroup crimec_multihop Composable best-effort multihop forwarding
  * @{
  *
- * The multihop module implements a multihop forwarding mechanism. Routes
+ * The c_multihop module implements a multihop forwarding mechanism. Routes
  * must have already been setup with the route_add() function. Setting
- * up routes is done with another Rime module such as the \ref
- * routediscovery "route-discovery module".
+ * up routes is done with another CRime module such as the \ref
+ * c_route_discovery "c-route-discovery module".
  *
  * The multihop sends a packet to an identified node in the network by
  * using multi-hop forwarding at each node in the network.  The
@@ -21,15 +21,13 @@
  * notified of this and may choose to initiate a route discovery
  * process.
  *
- *
  * \section channels Channels
- *
  * The multihop module uses 1 channel.
  *
  */
 
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,16 +54,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.6 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Multihop forwarding header file
+ *         Header file for the CRime module Composeable best effort multihop.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #ifndef __C_MULTIHOP_H__
@@ -73,17 +70,62 @@
 
 #include "net/rime/rimeaddr.h"
 
+/**
+ * \brief      Set up the connections required for the multihop routing service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_multihop connections on the specified channel.
+ */
 void c_multihop_open(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Close the connections required for the multihop routing service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when the c_multihop connection is
+ *             not needed anymore or by an exit handler.
+ */
 void c_multihop_close(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Send a packet using the multihop routing protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet needs to be sent by
+ *             c_multihop.
+ *
+ */
 int c_multihop_send(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Receive a packet using the multihop routing protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet is received by c_multihop.
+ */
 void c_multihop_recv(struct pipe *p, struct stackmodule_i *module);
 
-rimeaddr_t *c_multihop_forward(struct pipe *p, struct stackmodule_i *module);
-
+/**
+ * \brief      Notification for having sent a packet with the multihop routing protocol
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been successfully sent by c_multihop.
+ */
 void c_multihop_sent(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      This function is called when a packet needs to be forwarded.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function handles forwarding packets for the c_multihop primitive.
+ */
+rimeaddr_t *c_multihop_forward(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_MULTIHOP_H__ */
 /** @} */

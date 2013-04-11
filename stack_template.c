@@ -29,6 +29,7 @@
 #define PRINTF(...)
 #endif
 
+/*---------------------------------------------------------------------------*/
 void
 printaddr(int stack_id)
 {
@@ -57,6 +58,7 @@ printaddr(int stack_id)
          ereceiver->u8[0], ereceiver->u8[1]);
 }
 
+/*---------------------------------------------------------------------------*/
 void
 stack_init()
 {
@@ -66,9 +68,9 @@ stack_init()
   rimeaddr_t addr;
 
   //@defStack
-
 }
 
+/*---------------------------------------------------------------------------*/
 void
 stack_open(struct stack_i *stack)
 {
@@ -87,6 +89,7 @@ stack_open(struct stack_i *stack)
   PRINTF("~stack_open \n");
 }
 
+/*---------------------------------------------------------------------------*/
 void
 stack_close(struct stack_i *stack)
 {
@@ -103,6 +106,7 @@ stack_close(struct stack_i *stack)
   PRINTF("~stack_close \n");
 }
 
+/*---------------------------------------------------------------------------*/
 int
 stack_send(struct stack_i *stack, uint8_t module_id)
 {
@@ -128,6 +132,7 @@ stack_send(struct stack_i *stack, uint8_t module_id)
   return sent_flag;
 }
 
+/*---------------------------------------------------------------------------*/
 void
 stack_dropped(struct stack_i *stack)
 {
@@ -144,6 +149,7 @@ stack_dropped(struct stack_i *stack)
   PRINTF("~stack_dropped \n");
 }
 
+/*---------------------------------------------------------------------------*/
 void
 stack_timedout(struct stackmodule_i *module)
 {
@@ -165,6 +171,7 @@ stack_timedout(struct stackmodule_i *module)
   PRINTF("~stack_timedout \n");
 }
 
+/*---------------------------------------------------------------------------*/
 /*
 void stack_discover(struct stack_i *stack){
 	PRINTF("stack_discover \n");

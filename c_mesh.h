@@ -1,26 +1,25 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup rimemesh Mesh routing
+ * \defgroup crimec_mesh Composable Mesh routing
  * @{
  *
- * The mesh module sends packets using multi-hop routing to a specified
+ * The c_mesh module sends packets using multi-hop routing to a specified
  * receiver somewhere in the network.
- *
  *
  * \section channels Channels
  *
- * The mesh module uses 3 channel; one for the multi-hop forwarding
- * (\ref rimemultihop "multihop") and two for the route disovery (\ref
- * routediscovery "route-discovery").
+  * The mesh module uses 3 channel; one for the multi-hop forwarding
+ * (\ref crimec_multihop "c_multihop") and two for the route disovery (\ref
+ * c_route_discovery "route-discovery").
  *
  */
 
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,17 +46,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.16 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the Rime mesh routing protocol
+ *         Header file for the CRime module Composeable Mesh routing protocol.
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
+
 
 #ifndef __C_MESH_H__
 #define __C_MESH_H__
@@ -67,21 +66,71 @@
 #include "net/rime/crime/c_route_discovery.h"
 
 /**
- * \brief     Mesh callbacks
+ * \brief      Set up the connections required for the mesh routing service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up c_mesh connections on three different
+ *             specified channels.
  */
-
 void c_mesh_open(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Close the connections required for the mesh routing service.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a c_mesh connections are
+ *             not needed anymore or by an exit handler.
+ */
 void c_mesh_close(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Send a packet using the mesh routing protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet needs to be sent by
+ *             c_mesh.
+ *
+ */
 int c_mesh_send(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Receive a packet using the mesh routing protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet is received by c_mesh.
+ */
 void c_mesh_recv(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      Notification for having sent a packet with the mesh routing protocol
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function is called when a packet has been successfully sent by c_mesh.
+ */
 void c_mesh_sent(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      This function is called when a packet needs to be forwarded.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function handles forwarding packets for the c_mesh routing protocol.
+ */
 rimeaddr_t *c_mesh_forward(struct pipe *p, struct stackmodule_i *module);
 
+/**
+ * \brief      This function handles a message send timeout for the mesh routing protocol.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function handles a timeout for an attempt to
+ *             send a packet using c_mesh.
+ */
 void c_mesh_timedout(struct pipe *p, struct stackmodule_i *module);
 
 #endif /* __C_MESH_H__ */

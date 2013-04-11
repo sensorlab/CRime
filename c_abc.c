@@ -1,10 +1,10 @@
 /**
- * \addtogroup crimecabc
+ * \addtogroup crimec_abc
  * @{
  */
 
 /*
- * Copyright (c) 2013, Jozef Stefan Institute.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
  *
  * Author: Carolina Fortuna <carolina.fortuna@ijs.si>
  *
- * $Id: c_abc.c,v 0.0 2013/03/06 18:38:05 adamdunkels Exp $
  */
 
 /**
@@ -56,7 +55,7 @@
 #define PRINTF(...)
 #endif
 
-#define EVAL 1
+#define EVAL 0
 #if EVAL
 #include <stdio.h>
 #define START_TM vsnTime_freeRunTime()
@@ -68,22 +67,7 @@
 #define PRINTFE(...)
 #endif
 
-/**
- * \brief      Set up an anonymous best-effort broadcast connection
- * \param c    A pointer to a struct abc_conn
- * \param channel The channel on which the connection will operate
- * \param u    A struct abc_callbacks with function pointers to functions that will be called when a packet has been received
- *
- *             This function sets up an abc connection on the
- *             specified channel. The caller must have allocated the
- *             memory for the struct abc_conn, usually by declaring it
- *             as a static variable.
- *
- *             The struct abc_callbacks pointer must point to a structure
- *             containing a pointer to a function that will be called
- *             when a packet arrives on the channel.
- *
- */
+
 void c_abc_open(struct pipe *p, struct stackmodule_i *module) {
 	int start_tm = START_TM;
 	channel_set_attributes(p->channel->channelno, p->channel->attrlist);

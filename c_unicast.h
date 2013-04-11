@@ -1,27 +1,27 @@
 /**
- * \addtogroup rime
+ * \addtogroup crime
  * @{
  */
 
 /**
- * \defgroup rimeuc Single-hop unicast
+ * \defgroup crimec_unicast Single-hop unicast
  * @{
  *
- * The unicast module sends a packet to an identified single-hop
- * neighbor.  The unicast primitive uses the broadcast primitive and
- * adds the single-hop receiver address attribute to the outgoing
- * packets. For incoming packets, the unicast module inspects the
- * single-hop receiver address attribute and discards the packet if
- * the address does not match the address of the node.
+ * The c_unicast module sends a packet to an identified single-hop
+ * neighbor.  The unicast primitive adds the single-hop receiver
+ * address attribute to the outgoing packets. For incoming packets,
+ * the unicast module inspects the single-hop receiver address
+ * attribute and discards the packet if the address does not match
+ * the address of the node.
  *
  * \section channels Channels
  *
- * The unicast module uses 1 channel.
+ * The c_unicast module uses 1 channel.
  *
  */
 
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Jozef Stefan Institute.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,20 +48,73 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
  *
- * $Id: unicast.h,v 1.6 2010/02/23 18:38:05 adamdunkels Exp $
  */
-
 /**
  * \file
- *         Header file for Rime's single-hop unicast
+ *         Header file for the CRime module unicast (c_unicast).
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Carolina Fortuna <carolina.fortuna@ijs.si>
  */
 
 #ifndef __C_UNICAST_H__
 #define __C_UNICAST_H__
+
+/**
+ * \brief      Set up a c_unicast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sets up a c_unicast connection on the
+ *             specified channel.
+ */
+void c_unicast_open(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Close a c_unicast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function closes the c_unicast connection.
+ *
+ */
+void c_unicast_close(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Send a packet using the c_unicast primitive.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function sends a packet to a specified target
+ *             using the c_unicast primitive.
+ *
+ */
+int c_unicast_send(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Receive a packet using the c_unicast connection
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This function receives a packet using the c_unicast
+ *             primitive.
+ */
+void c_unicast_recv(struct pipe *p, struct stackmodule_i *module);
+
+/**
+ * \brief      Notification of successful sending of a packet.
+ * \param p    A pointer to a pipe struct.
+ * \param module Pointer to an abstract module struct.
+ *
+ *             This notifies the services on top that a packet
+ *             was successfully sent by the c_unicast primitive.
+ *
+ */
+void c_unicast_sent(struct pipe *p, struct stackmodule_i *module);
+
+#endif /* __C_UNICAST_H__ */
+/** @} */
+/** @} */
 
 //turtle crime:c_unicast rdf:type cpan:Module .
 //turtle crime:c_unicast rdfs:comment The unicast module sends a packet to an identified single-hop neighbor. .
@@ -116,18 +169,3 @@
 //turtle crime:trigger_th rdf:type owls:Parameter .
 //turtle crime:c_unicast crime:hasParameter crime:trigger_th .
 //turtle crime:trigger_th crime:isUserSetByOptional crime:c_unicast .
-
-
-void c_unicast_open(struct pipe *p, struct stackmodule_i *module);
-
-void c_unicast_close(struct pipe *p, struct stackmodule_i *module);
-
-int c_unicast_send(struct pipe *p, struct stackmodule_i *module);
-
-void c_unicast_recv(struct pipe *p, struct stackmodule_i *module);
-
-void c_unicast_sent(struct pipe *p, struct stackmodule_i *module);
-
-#endif /* __C_UNICAST_H__ */
-/** @} */
-/** @} */
