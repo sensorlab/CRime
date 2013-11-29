@@ -21,13 +21,15 @@
 #include "net/rime/crime/c_route_discovery.h"
 #include "net/rime/crime/c_echo_app.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
+
+void * calloc (unsigned int nm, unsigned int es){ return malloc(nm*es);}
 
 void
 printaddr(int stack_id)
@@ -181,6 +183,42 @@ stack_send(struct stack_i *stack, uint8_t module_id)
   }
   PRINTF("~stack_send \n");
   return sent_flag;
+}
+
+void
+stack_recv(struct stackmodule_i *module)
+{
+  PRINTF("stack_recv \n");
+  PRINTF("stack_id: %d\n",module->stack_id);
+  uint8_t stack_id = module->stack_id;
+  uint8_t mod_id = module->module_id;
+
+  /*if(stack[stack_id].not_dest_flg == 1) {
+return;
+}*/
+
+  int modno = stack[stack_id].modno - 1;
+
+  if(mod_id <= modno) {
+    if(stack[stack_id].amodule[modno].c_recv != NULL) {
+      c_recv(stack[stack_id].pip, stack[stack_id].amodule, mod_id);
+    }
+  }
+
+  if(module->module_id == 0 && stack[stack_id].not_dest_flg == 1) {
+    stack[stack_id].not_dest_flg = 0;
+    return;
+  }
+
+  if(stack[stack_id].amodule[modno].parent != NULL) {
+         if((stack_id == 2) || (stack_id == 1 && stack[stack_id].rrep_received_flg == 1)) {
+                 stack[stack_id].merged_flg = 1;
+                 uint8_t parent_stack_id = stack[stack_id].amodule[modno].parent->stack_id;
+                 uint8_t parent_mod_id = stack[stack_id].amodule[modno].parent->module_id;
+                 stack_recv(&stack[parent_stack_id].amodule[parent_mod_id]);
+         }
+  }
+  PRINTF("~stack_recv \n");
 }
 
 void
