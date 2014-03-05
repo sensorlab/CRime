@@ -86,11 +86,6 @@ void
 c_broadcast_recv(struct pipe *p, struct stackmodule_i *module)
 {
   PRINTF("c_broadcast_recv \n");
-  rimeaddr_t tmpaddr;
-
-  rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_SENDER));
-  set_node_addr(module->stack_id, 1, 0, &tmpaddr);
-
   PRINTF("c_broadcast_recv: %d.%d received packet %s from %d.%d\n",
          rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
          (char *)packetbuf_dataptr(), p->in_sender.u8[0], p->in_sender.u8[1]);
