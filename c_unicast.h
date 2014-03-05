@@ -152,7 +152,7 @@ void c_unicast_sent(struct pipe *p, struct stackmodule_i *module);
 //turtle crime:num_tx rdf:type owls:Parameter .
 //turtle crime:c_unicast crime:hasParameter crime:num_tx .
 //turtle crime:sender rdf:type owls:Parameter .
-//turtle crime:c_broadcast crime:hasParameter crime:sender .
+//turtle crime:c_unicast crime:hasParameter crime:sender .
 //turtle crime:receiver rdf:type owls:Parameter .
 //turtle crime:c_unicast crime:hasParameter crime:receiver .
 //turtle crime:receiver crime:isUserSetBy crime:c_unicast .
