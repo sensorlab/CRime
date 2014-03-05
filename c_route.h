@@ -53,8 +53,9 @@
 #define __CROUTE_H__
 
 #include "net/rime/rimeaddr.h"
+#include "amodule.h"
 
-struct c_route_entry {
+/*struct c_route_entry {
   struct c_route_entry *next;
   rimeaddr_t dest;
   rimeaddr_t nexthop;
@@ -64,10 +65,10 @@ struct c_route_entry {
   uint8_t time;
   uint8_t decay;
   uint8_t time_last_decay;
-};
+};*/
 
-void c_route_init(void);
-void c_route_output(void);
+void c_route_init(struct pipe* p);
+void c_route_output(struct pipe* p);
 //int c_route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
 	//      uint8_t cost, uint8_t seqno);
 int (*c_route_add) (const rimeaddr_t *dest, const rimeaddr_t *nexthop,
@@ -75,21 +76,20 @@ int (*c_route_add) (const rimeaddr_t *dest, const rimeaddr_t *nexthop,
 //struct c_route_entry *c_route_lookup(const rimeaddr_t *dest);
 struct c_route_entry* (*c_route_lookup) (const rimeaddr_t *dest);
 void c_route_refresh(struct c_route_entry *e);
-void c_route_decay(struct c_route_entry *e);
-void c_route_remove(struct c_route_entry *e);
-void c_route_flush_all(void);
+void c_route_decay(struct pipe* p, struct c_route_entry *e);
+void c_route_remove(struct pipe* p, struct c_route_entry *e);
+void c_route_flush_all(struct pipe* p);
 void c_route_set_lifetime(int seconds);
 
-int c_route_num(void);
-struct c_route_entry *c_route_get(int num);
+int c_route_num(struct pipe* p);
+struct c_route_entry *c_route_get(struct pipe* p, int num);
 
 /*---------------------------------------------------*/
 int c_route_hc_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
-		uint8_t cost, uint8_t seqno, uint8_t lqi);
+		uint8_t cost, uint8_t seqno, uint8_t lqi, struct pipe* p);
 
-struct c_route_entry *c_sp_lookup(const rimeaddr_t *dest);
-struct c_route_entry *c_sprssi_lookup(const rimeaddr_t *dest);
-struct c_route_entry *c_rnd_lookup(const rimeaddr_t *dest);
+struct c_route_entry *c_sp_lookup(const rimeaddr_t *dest, struct pipe* p);
+struct c_route_entry *c_rnd_lookup(const rimeaddr_t *dest, struct pipe* p);
 
 #endif /* __CROUTE_H__ */
 /** @} */
