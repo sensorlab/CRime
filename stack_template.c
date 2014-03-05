@@ -29,6 +29,8 @@
 #define PRINTF(...)
 #endif
 
+void * calloc (size_t nm, size_t es){ return malloc(nm*es);}
+
 /*---------------------------------------------------------------------------*/
 void
 printaddr(int stack_id)

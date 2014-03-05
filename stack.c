@@ -20,8 +20,13 @@
 #include "net/rime/crime/c_mesh.h"
 #include "net/rime/crime/c_route_discovery.h"
 #include "net/rime/crime/c_echo_app.h"
+#include "net/rime/crime/c_link_stats.h"
+#include "net/rime/crime/c_lqe_ewma.h"
+#include "net/rime/crime/c_lqe_wmewma.h"
+#include "net/rime/crime/c_lqe_linregr.h"
+#include "net/rime/crime/c_lqe_ma.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -29,7 +34,7 @@
 #define PRINTF(...)
 #endif
 
-void * calloc (unsigned int nm, unsigned int es){ return malloc(nm*es);}
+void * calloc (size_t nm, size_t es){ return malloc(nm*es);}
 
 void
 printaddr(int stack_id)
@@ -62,67 +67,111 @@ printaddr(int stack_id)
 void
 stack_init()
 {
-  PRINTF("stack init\n");
-  //init the stacks structure (columns of the matrix, branches of the tree)
-  stack = (struct stack_i *)calloc(STACKNO, sizeof(struct stack_i));
-  rimeaddr_t addr;
+	PRINTF("\n stack init called\n");
+	  //init the stacks structure (columns of the matrix, branches of the tree)
+	  stack = (struct stack_i *)calloc(STACKNO, sizeof(struct stack_i));
+	  rimeaddr_t addr;
 
-  //@defStack
-	struct pipe *pi0; 
-	pi0 = (struct pipe*) calloc(1, sizeof(struct pipe)); 
-	struct channel *ch0; 
-	ch0 = (struct channel*) calloc(1, sizeof(struct channel)); 
-	stack[0].pip = pi0; 
-	stack[0].pip->channel = ch0; 
-	stack[0].modno = 3; 
-	struct stackmodule_i *amodule0; 
-	amodule0 = (struct stackmodule_i*) calloc( 
-		stack[0].modno, sizeof(struct stackmodule_i)); 
-	addr.u8[0] = 0; addr.u8[1] = 0; 
-	set_node_addr(0, OUT, SENDER, &addr); 
+	  //@defStack
+	  c_route_add = c_route_hc_add;
+	  c_route_lookup = c_sp_lookup;
 
-	static struct packetbuf_attrlist c_attributes0[] = 
-	{ 
-	C_ABC_ATTRIBUTES PACKETBUF_ATTR_LAST 
-	}; 
+	  LIST(route_table);
+	  MEMB(route_mem, struct c_route_entry, NUM_RT_ENTRIES);
+	  LIST(neighbor_list);
+	  MEMB(neighbor_mem, struct c_neighbor, NUM_NEIGHBOR_ENTRIES);
 
-	stack[0].pip->channel_no = 0; 
-	stack[0].pip->attrlist = c_attributes0; 
-	stack[0].pip->channel->channelno = stack[0].pip->channel_no; 
-	stack[0].pip->channel->attrlist = stack[0].pip->attrlist; 
-	stack[0].amodule = amodule0; 
+	  struct pipe *pi0;
+	  pi0 = (struct pipe*) calloc(1, sizeof(struct pipe));
+	  struct channel *ch0;
+	  ch0 = (struct channel*) calloc(1, sizeof(struct channel));
+	  stack[0].pip = pi0;
+	  stack[0].pip->channel = ch0;
+	  stack[0].pip->route_table = route_table;
+	  stack[0].pip->route_mem = route_mem;
+	  stack[0].pip->neighbor_list = neighbor_list;
+	  stack[0].pip->neighbor_mem = neighbor_mem;
+	  stack[0].modno = 5;
+	  struct stackmodule_i *amodule0;
+	  amodule0 = (struct stackmodule_i*) calloc(
+	  stack[0].modno, sizeof(struct stackmodule_i));
+	  //addr.u8[0] = rimeaddr_node_addr.u8[0];
+	  //addr.u8[1] = rimeaddr_node_addr.u8[1];
+	  addr.u8[0] = 1; addr.u8[1] = 0;
+	  rimeaddr_set_node_addr(&addr);
+	  set_node_addr(0, OUT, SENDER, &addr);
 
-	amodule0[0].stack_id = 0; 
-	amodule0[0].module_id = 0; 
-	amodule0[0].parent = NULL;
-	stack[0].pip->channel_no = 111;
-	amodule0[0].c_open = c_channel_open;
-	amodule0[0].c_close = c_channel_close;
-	amodule0[0].c_recv = c_abc_input;
-	amodule0[0].c_send = c_rime_output;
+	  static struct packetbuf_attrlist c_attributes0[] =
+	  {
+			  C_LQE_EWMA_ATTRIBUTES PACKETBUF_ATTR_LAST
+			  //C_MESH_ATTRIBUTES PACKETBUF_ATTR_LAST
+	  };
 
-	amodule0[1].stack_id = 0; 
-	amodule0[1].module_id = 1; 
-	amodule0[1].parent = NULL;
-	amodule0[1].time_trigger_flg = 0;
-	amodule0[1].c_open = c_abc_open;
-	amodule0[1].c_close = c_abc_close;
-	amodule0[1].c_send = c_abc_send;
-	amodule0[1].c_sent = c_abc_sent;
-	amodule0[1].c_recv = c_abc_recv;
+	  stack[0].pip->channel_no = 0;
+	  stack[0].pip->attrlist = c_attributes0;
+	  stack[0].pip->channel->channelno = stack[0].pip->channel_no;
+	  stack[0].pip->channel->attrlist = stack[0].pip->attrlist;
+	  stack[0].amodule = amodule0;
 
-	amodule0[2].stack_id = 0; 
-	amodule0[2].module_id = 2; 
-	amodule0[2].parent = NULL;
-	amodule0[2].time_trigger_flg = 0;
-	amodule0[2].c_open = c_echo_app_open;
-	amodule0[2].c_close = c_echo_app_close;
-	amodule0[2].c_send = c_echo_app_send;
-	amodule0[2].c_recv = c_echo_app_recv;
-	amodule0[2].c_sent = c_echo_app_sent;
-	amodule0[2].c_forward = c_echo_app_forward;
-	amodule0[2].c_timed_out = c_echo_app_timedout;
+	  amodule0[0].stack_id = 0;
+	  amodule0[0].module_id = 0;
+	  amodule0[0].parent = NULL;
+	  stack[0].pip->channel_no = 111;
+	  amodule0[0].c_open = c_channel_open;
+	  amodule0[0].c_close = c_channel_close;
+	  amodule0[0].c_recv = c_abc_input;
+	  amodule0[0].c_send = c_rime_output;
 
+	  amodule0[1].stack_id = 0;
+	  amodule0[1].module_id = 1;
+	  amodule0[1].parent = NULL;
+	  amodule0[1].time_trigger_flg = 0;
+	  addr.u8[0] = rimeaddr_node_addr.u8[0];
+	  addr.u8[1] = rimeaddr_node_addr.u8[1];
+	  set_node_addr(0, OUT, SENDER, &addr);
+	  amodule0[1].c_open = c_broadcast_open;
+	  amodule0[1].c_close = c_broadcast_close;
+	  amodule0[1].c_send = c_broadcast_send;
+	  amodule0[1].c_sent = c_broadcast_sent;
+	  amodule0[1].c_recv = c_broadcast_recv;
+
+	  amodule0[2].stack_id = 0;
+ 	  amodule0[2].module_id = 2;
+  	  amodule0[2].parent = NULL;
+  	  amodule0[2].time_trigger_flg = 0;
+  	  amodule0[2].c_open = c_link_stats_open;
+  	  amodule0[2].c_close = c_link_stats_close;
+  	  amodule0[2].c_send = c_link_stats_send;
+  	  amodule0[2].c_sent = c_link_stats_sent;
+  	  amodule0[2].c_recv = c_link_stats_recv;
+  	  stack[0].pip->link_stats_param.maxpr_pts = 20;
+  	  stack[0].pip->link_stats_param.maxrssi_pts = 10;
+  	  stack[0].pip->link_stats_param.maxlqi_pts = 10;
+  	  //stack[0].pip->link_stats_param.count_lock = 1;
+
+      amodule0[3].stack_id = 0;
+  	  amodule0[3].module_id = 3;
+  	  amodule0[3].parent = NULL;
+  	  amodule0[3].time_trigger_flg = 0;
+  	  amodule0[3].c_open = c_lqe_linregr_open;
+  	  amodule0[3].c_close = c_lqe_linregr_close;
+  	  amodule0[3].c_send = c_lqe_linregr_send;
+  	  amodule0[3].c_sent = c_lqe_linregr_sent;
+  	  amodule0[3].c_recv = c_lqe_linregr_recv;
+  	  //stack[0].pip->lqe_ewma_param.alpha = 0.95;
+
+	  amodule0[4].stack_id = 0;
+  	  amodule0[4].module_id = 4;
+  	  amodule0[4].parent = NULL;
+  	  amodule0[4].time_trigger_flg = 0;
+  	  amodule0[4].c_open = c_echo_app_open;
+  	  amodule0[4].c_close = c_echo_app_close;
+  	  amodule0[4].c_send = c_echo_app_send;
+  	  amodule0[4].c_recv = c_echo_app_recv;
+  	  amodule0[4].c_sent = c_echo_app_sent;
+  	  //rimeaddr_copy(amodule0[5].c_forward, c_echo_app_forward);
+  	  amodule0[4].c_forward = c_echo_app_forward;
+  	  amodule0[4].c_timed_out = c_echo_app_timedout;
 
 }
 
@@ -186,52 +235,16 @@ stack_send(struct stack_i *stack, uint8_t module_id)
 }
 
 void
-stack_recv(struct stackmodule_i *module)
-{
-  PRINTF("stack_recv \n");
-  PRINTF("stack_id: %d\n",module->stack_id);
-  uint8_t stack_id = module->stack_id;
-  uint8_t mod_id = module->module_id;
-
-  /*if(stack[stack_id].not_dest_flg == 1) {
-return;
-}*/
-
-  int modno = stack[stack_id].modno - 1;
-
-  if(mod_id <= modno) {
-    if(stack[stack_id].amodule[modno].c_recv != NULL) {
-      c_recv(stack[stack_id].pip, stack[stack_id].amodule, mod_id);
-    }
-  }
-
-  if(module->module_id == 0 && stack[stack_id].not_dest_flg == 1) {
-    stack[stack_id].not_dest_flg = 0;
-    return;
-  }
-
-  if(stack[stack_id].amodule[modno].parent != NULL) {
-         if((stack_id == 2) || (stack_id == 1 && stack[stack_id].rrep_received_flg == 1)) {
-                 stack[stack_id].merged_flg = 1;
-                 uint8_t parent_stack_id = stack[stack_id].amodule[modno].parent->stack_id;
-                 uint8_t parent_mod_id = stack[stack_id].amodule[modno].parent->module_id;
-                 stack_recv(&stack[parent_stack_id].amodule[parent_mod_id]);
-         }
-  }
-  PRINTF("~stack_recv \n");
-}
-
-void
-stack_dropped(struct stack_i *stack)
+stack_dropped(struct stack_i *stack, uint8_t module_id)
 {
   PRINTF("stack_dropped \n");
-  int p;
-
-  for(p = 0; p < STACKNO; p++) {
-    int modno = stack[p].modno - 1;
-
-    if(stack[p].amodule[modno].c_dropped != NULL) {
-      c_dropped(stack[p].pip, stack[p].amodule, modno);
+  if (module_id < 0) {return; }
+  if (module_id <= stack->modno)
+  {
+    int modno = module_id;
+    if(stack->amodule[modno].c_dropped != NULL) 
+    {
+      c_dropped(stack->pip, stack->amodule, modno);
     }
   }
   PRINTF("~stack_dropped \n");
@@ -258,16 +271,38 @@ stack_timedout(struct stackmodule_i *module)
   PRINTF("~stack_timedout \n");
 }
 
-/*
-void stack_discover(struct stack_i *stack){
-	PRINTF("stack_discover \n");
-		int p;
-		for (p = 0; p < STACKNO; p++) {
-			int modno = stack[p].modno - 1;
-			if (stack[p].amodule[modno].c_discover != NULL){
-				c_discover(stack[p].pip, stack[p].amodule, modno - 1);
-			}
-		}
-		PRINTF("~stack_dropped \n");
+void
+stack_recv(struct stackmodule_i *module)
+{
+  PRINTF("stack_recv \n");
+  PRINTF("stack_id: %d\n",module->stack_id);
+  uint8_t stack_id = module->stack_id;
+  uint8_t mod_id = module->module_id;
+
+  /*if(stack[stack_id].not_dest_flg == 1) {
+    return;
+  }*/
+  
+  int modno = stack[stack_id].modno - 1;
+  
+  if(mod_id <= modno) {
+    if(stack[stack_id].amodule[modno].c_recv != NULL) {
+      c_recv(stack[stack_id].pip, stack[stack_id].amodule, mod_id);
+    }
+  }
+
+  if(module->module_id == 0 && stack[stack_id].not_dest_flg == 1) {
+    stack[stack_id].not_dest_flg = 0; 
+    return;
+  }
+
+  if(stack[stack_id].amodule[modno].parent != NULL) {
+	  if((stack_id == 2) || (stack_id == 1 && 	stack[stack_id].rrep_received_flg  == 1)) {
+		  stack[stack_id].merged_flg = 1;
+		  uint8_t parent_stack_id = stack[stack_id].amodule[modno].parent->stack_id;
+		  uint8_t parent_mod_id = stack[stack_id].amodule[modno].parent->module_id;
+		  stack_recv(&stack[parent_stack_id].amodule[parent_mod_id]);
+	  }
+  }
+  PRINTF("~stack_recv \n");
 }
-*/

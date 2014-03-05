@@ -52,7 +52,7 @@ int stack_send(struct stack_i *stack, uint8_t moduleid);
 
 void stack_recv(struct stackmodule_i *module);
 
-void stack_dropped(struct stack_i *stack);
+void stack_dropped(struct stack_i *stack, uint8_t module_id);
 
 void stack_timedout(struct stackmodule_i *module);
 
