@@ -54,11 +54,8 @@
 #include "contiki-conf.h"
 #include "lib/random.h"
 
-#ifdef ROUTE_CONF_ENTRIES
-#define NUM_RT_ENTRIES ROUTE_CONF_ENTRIES
-#else /* ROUTE_CONF_ENTRIES */
-#define NUM_RT_ENTRIES 8
-#endif /* ROUTE_CONF_ENTRIES */
+#include "amodule.h"
+
 
 #ifdef ROUTE_CONF_DECAY_THRESHOLD
 #define DECAY_THRESHOLD ROUTE_CONF_DECAY_THRESHOLD
@@ -75,8 +72,8 @@
 /*
  * List of route entries.
  */
-LIST(route_table);
-MEMB(route_mem, struct c_route_entry, NUM_RT_ENTRIES);
+/*LIST(route_table);
+MEMB(route_mem, struct c_route_entry, NUM_RT_ENTRIES);*/
 
 static struct ctimer t;
 
@@ -93,40 +90,40 @@ static int max_time = DEFAULT_LIFETIME;
 
 /*---------------------------------------------------------------------------*/
 static void
-periodic(void *ptr)
+periodic(struct pipe* p)
 {
   struct c_route_entry *e;
 
-  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
+  for(e = list_head(p->route_table); e != NULL; e = list_item_next(e)) {
     e->time++;
     if(e->time >= max_time) {
       PRINTF("route periodic: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
 	     e->dest.u8[0], e->dest.u8[1],
 	     e->nexthop.u8[0], e->nexthop.u8[1],
 	     e->cost);
-      list_remove(route_table, e);
-      memb_free(&route_mem, e);
+      list_remove(p->route_table, e);
+      memb_free(&p->route_mem, e);
     }
   }
 
-  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
+  ctimer_set(&t, CLOCK_SECOND, periodic, p);
 }
 /*---------------------------------------------------------------------------*/
 void
-c_route_init(void)
+c_route_init(struct pipe *p)
 {
-  list_init(route_table);
-  memb_init(&route_mem);
+  list_init(p->route_table);
+  memb_init(&p->route_mem);
 
-  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
+  ctimer_set(&t, CLOCK_SECOND, periodic, p);
   PRINTF("~c_route_init \n");
 }
 /*---------------------------------------------------------------------------*/
 void
-c_route_output(void)
+c_route_output(struct pipe* p)
 {
 	struct c_route_entry *e;
-	for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
+	for(e = list_head(p->route_table); e != NULL; e = list_item_next(e)) {
 		printf("possible route for %d.%d with nexthop %d.%d and cost %d\n",
 		  	 e->dest.u8[0], e->dest.u8[1],
 		  	 e->nexthop.u8[0], e->nexthop.u8[1],
@@ -224,7 +221,7 @@ c_route_refresh(struct c_route_entry *e)
 }
 /*---------------------------------------------------------------------------*/
 void
-c_route_decay(struct c_route_entry *e)
+c_route_decay(struct pipe* p, struct c_route_entry *e)
 {
   /* If routes are not refreshed, they decay over time. This function
      is called to decay a route. The route can only be decayed once
@@ -245,27 +242,27 @@ c_route_decay(struct c_route_entry *e)
 	     e->dest.u8[0], e->dest.u8[1],
 	     e->nexthop.u8[0], e->nexthop.u8[1],
 	     e->cost);
-      c_route_remove(e);
+      c_route_remove(p, e);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-c_route_remove(struct c_route_entry *e)
+c_route_remove(struct pipe* p, struct c_route_entry *e)
 {
-  list_remove(route_table, e);
-  memb_free(&route_mem, e);
+  list_remove(p->route_table, e);
+  memb_free(&p->route_mem, e);
 }
 /*---------------------------------------------------------------------------*/
 void
-c_route_flush_all(void)
+c_route_flush_all(struct pipe* p)
 {
   struct c_route_entry *e;
 
   while(1) {
-    e = list_pop(route_table);
+    e = list_pop(p->route_table);
     if(e != NULL) {
-      memb_free(&route_mem, e);
+      memb_free(&p->route_mem, e);
     } else {
       break;
     }
@@ -279,24 +276,24 @@ c_route_set_lifetime(int seconds)
 }
 /*---------------------------------------------------------------------------*/
 int
-c_route_num(void)
+c_route_num(struct pipe* p)
 {
   struct c_route_entry *e;
   int i = 0;
 
-  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
+  for(e = list_head(p->route_table); e != NULL; e = list_item_next(e)) {
     i++;
   }
   return i;
 }
 /*---------------------------------------------------------------------------*/
 struct c_route_entry *
-c_route_get(int num)
+c_route_get(struct pipe* p, int num)
 {
   struct c_route_entry *e;
   int i = 0;
 
-  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
+  for(e = list_head(p->route_table); e != NULL; e = list_item_next(e)) {
     if(i == num) {
       return e;
     }
@@ -310,24 +307,24 @@ c_route_get(int num)
 /*---------------------------- hop count ----------------------------------*/
 int
 c_route_hc_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
-	  uint8_t cost, uint8_t seqno, uint8_t lqi)
+	  uint8_t cost, uint8_t seqno, uint8_t lqi, struct pipe* p)
 {
   struct c_route_entry *e;
 
   /* Avoid inserting duplicate entries. */
   e = c_route_lookup(dest);
   if(e != NULL && rimeaddr_cmp(&e->nexthop, nexthop)) {
-    list_remove(route_table, e);
+    list_remove(p->route_table, e);
     printf("route_add: removing DUPLICATE entry to %d.%d with nexthop %d.%d and cost %d\n",
     	     e->dest.u8[0], e->dest.u8[1],
     	     e->nexthop.u8[0], e->nexthop.u8[1],
     	     e->cost);
   } else {
     /* Allocate a new entry or reuse the oldest entry with highest cost. */
-    e = memb_alloc(&route_mem);
+    e = memb_alloc(&p->route_mem);
     if(e == NULL) {
       /* Remove oldest entry.  XXX */
-      e = list_chop(route_table);
+      e = list_chop(p->route_table);
       printf("route_add: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
 	     e->dest.u8[0], e->dest.u8[1],
 	     e->nexthop.u8[0], e->nexthop.u8[1],
@@ -343,27 +340,27 @@ c_route_hc_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
   e->decay = 0;
 
   /* New entry goes first. */
-  list_push(route_table, e);
+  list_push(p->route_table, e);
 
   printf("route_add: new entry to %d.%d with nexthop %d.%d and cost %d\n",
 	 e->dest.u8[0], e->dest.u8[1],
 	 e->nexthop.u8[0], e->nexthop.u8[1],
 	 e->cost);
-  c_route_output();
+  c_route_output(p);
 
   return 0;
 }
 
 /*------------------------------- random   ----------------------------------*/
 struct c_route_entry *
-c_rnd_lookup(const rimeaddr_t *dest)
+c_rnd_lookup(const rimeaddr_t *dest, struct pipe* p)
 {
   LIST(temp_list);
   list_init(temp_list);
   struct c_route_entry *e;
   int num;
 
-  list_copy(temp_list, route_table);
+  list_copy(temp_list, p->route_table);
   for(e = list_head(temp_list); e != NULL; e = list_item_next(e)) {
 	  if(!rimeaddr_cmp(dest, &e->dest)) {
 		  list_remove(temp_list, e);
@@ -392,7 +389,7 @@ c_rnd_lookup(const rimeaddr_t *dest)
 }
 /*----------------------------shortest path----------------------------------*/
 struct c_route_entry *
-c_sp_lookup(const rimeaddr_t *dest)
+c_sp_lookup(const rimeaddr_t *dest, struct pipe* p)
 {
   struct c_route_entry *e;
   uint8_t lowest_cost;
@@ -402,7 +399,7 @@ c_sp_lookup(const rimeaddr_t *dest)
   best_entry = NULL;
 
   /* Find the route with the lowest cost. */
-  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
+  for(e = list_head(p->route_table); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(dest, &e->dest)) {
       if(e->cost < lowest_cost) {
     	  best_entry = e;
@@ -413,30 +410,5 @@ c_sp_lookup(const rimeaddr_t *dest)
   return best_entry;
 }
 
-/*----------------------------shortest path rssi----------------------------------*/
-struct c_route_entry *
-c_sprssi_lookup(const rimeaddr_t *dest)
-{
-  struct c_route_entry *e;
-  uint8_t lowest_cost;
-  struct c_route_entry *best_entry;
-
-  lowest_cost = -1;
-  best_entry = NULL;
-
-  /* Find the route with the lowest cost. */
-  for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
-    if(rimeaddr_cmp(dest, &e->dest)) {
-    	uint8_t cost = e->cost + e->lqi/10;
-    	  printf("rssi %d lqi %d cost %d\n",
-    	  	        packetbuf_attr(PACKETBUF_ATTR_RSSI), packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY), cost);
-      if(cost < lowest_cost) {
-    	  best_entry = e;
-    	  lowest_cost = cost;
-      }
-    }
-  }
-  return best_entry;
-}
 
 /** @} */
