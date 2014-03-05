@@ -65,7 +65,7 @@
 #include <string.h>
 
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -108,6 +108,8 @@ c_unicast_send(struct pipe *p, struct stackmodule_i *module)
   PRINTF("c_unicast_send \n");
   rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 2);
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, tmpaddr);
+  PRINTF("c_unicast_send to %d.%d \n", tmpaddr->u8[0], tmpaddr->u8[1]);
+  printaddr(module->stack_id);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -118,8 +120,7 @@ c_unicast_recv(struct pipe *p, struct stackmodule_i *module)
   PRINTF("c_unicast_recv \n");
   rimeaddr_t tmpaddr;
 
-  rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-  set_node_addr(module->stack_id, 1, 2, &tmpaddr);
+  rimeaddr_copy(&tmpaddr, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));  
 
   if(rimeaddr_cmp
      (packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
