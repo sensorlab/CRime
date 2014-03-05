@@ -182,7 +182,7 @@ void c_polite_recv(struct pipe *p, struct stackmodule_i *module) {
 		ctimer_stop(&module->timer);
 		PRINTF("~c_polite_recv: copy of our packet, cancelling \n");
 		if (module->stack_id < STACKNO) {
-			stack_dropped(&stack[module->stack_id]);
+			stack_dropped(&stack[module->stack_id],module->module_id);
 		}
 	}
 }
