@@ -17,6 +17,11 @@
 #include "net/rime/crime/c_multihop.h"
 #include "net/rime/crime/c_trickle.h"
 #include "net/rime/crime/c_netflood.h"
+#include "net/rime/crime/c_link_stats.h"
+#include "net/rime/crime/c_lqe_ewma.h"
+#include "net/rime/crime/c_lqe_wmewma.h"
+#include "net/rime/crime/c_lqe_linregr.h"
+#include "net/rime/crime/c_mesh.h"
 
 #include "vsntime.h"
 
@@ -45,10 +50,10 @@ c_open(struct pipe *p, struct stackmodule_i *module, uint8_t len)
   if(module[len].c_open == NULL)
     return;
   uint8_t modno = stack[module[len].stack_id].modno;
-
   module[len].c_open(p, &module[len]);
   len++;
   if((len >= 0) && (len < modno)) {
+	  PRINTF("c_open %d\n", len);
     c_open(p, module, len);
   }
   PRINTF("~c_open %d\n", len);
@@ -81,50 +86,32 @@ void
 c_recv(struct pipe *p, struct stackmodule_i *module, uint8_t len)
 {
   PRINTF("c_recv %d\n", len);
+  
+  uint8_t modno = stack[module[len].stack_id].modno ;
+  //uint8_t stack_id = module->stack_id;
+  //PRINTF("stack_id: %d\n", stack_id);
 
-#if EVAL
-  startTm2 = c_get_start_tm();
-  stopTm1 = vsnTime_freeRunTimeDiff(startTm2);
-  printf("%d, ", stopTm1);
-#endif
+  if (stack[module[len].stack_id].not_dest_flg == 1) {
+	  return;
+  }
+  if(stack[module[len].stack_id].resend_flg != 1 && len == 5) {
+	  return;
+  }
+  if(module[len].c_recv == NULL) { return; }
 
-  if(module[len].c_recv == NULL)
-    return;
-  uint8_t modno = stack[module[len].stack_id].modno;
-
-#if EVAL
-  startTm2 = vsnTime_freeRunTime();
-#endif
   module[len].c_recv(p, &module[len]);
-#if EVAL
-  stopTm1 = vsnTime_freeRunTimeDiff(startTm2);
-  printf("%d, ", stopTm1);
-
-  startTm2 = vsnTime_freeRunTime();
-#endif
   len++;
   if((len >= 0) && (len < modno)) {
     c_recv(p, module, len);
   }
-#if EVAL
-  stopTm1 = vsnTime_freeRunTimeDiff(startTm2);
-  printf("%d\n ", stopTm1);
-#endif
-  /*if (len == modno) {
-     startTm2 = c_get_start_tm();
-     stopTm1 = vsnTime_freeRunTimeDiff(startTm2);
-     printf("%d %d %d\n ", len, startTm2, stopTm1);
-     } */
-
-  //printf("%d\n ", packets++);
   PRINTF("~c_recv %d\n", len);
 }
 
 void
-set_amodule_trigger(int stackIdx, char *buf)
+set_amodule_trigger(int stackIdx)
 {
 
-  PRINTF("set_amodule_trigger %s \n", buf);
+  PRINTF("set_amodule_trigger \n");
   int i = 0, modIdx = 0;
 
   for(i = 0; i < stack[stackIdx].modno; i++) {
@@ -132,7 +119,6 @@ set_amodule_trigger(int stackIdx, char *buf)
       modIdx = i;
     }
   }
-  PRINTF("%d %d %s\n", stack[stackIdx].amodule[modIdx].stack_id, modIdx, buf);
 
   if(stack[stackIdx].amodule[modIdx].time_trigger_flg == 0) {
     return;
@@ -144,7 +130,7 @@ set_amodule_trigger(int stackIdx, char *buf)
   param->stackidx = stackIdx;
   param->modidx = modIdx;
   param->triggerno = stack[stackIdx].amodule[modIdx].trigger_no;
-  memcpy(param->buf, buf, 4);
+  memcpy(&param->hdr, packetbuf_dataptr(), sizeof(struct trigger_hdr));
   stack[stackIdx].amodule[modIdx].trigger_init_flg = 1;
   ctimer_set(&stack[stackIdx].amodule[modIdx].timer,
              stack[stackIdx].amodule[modIdx].trigger_interval,
@@ -168,17 +154,13 @@ c_send(struct pipe *p, struct stackmodule_i *module, uint8_t len)
 void
 c_triggered_send(struct trigger_param *param)
 {
-  PRINTF("c_triggered_send %s\n", (char *)param->buf);
-  packetbuf_copyfrom(param->buf, 4);
+  PRINTF("c_triggered_send\n");
+  packetbuf_copyfrom(&param->hdr, sizeof(struct trigger_hdr));
   c_send(stack[param->stackidx].pip,
-         stack[param->stackidx].amodule, param->modidx);
+         stack[param->stackidx].amodule, param->modidx + 1);
 
   int modno = param->modidx;    //stack[param->amodule[param->modidx].stack_id].modno - 1;
-
-  PRINTF("!!!! %d %d %d %s %s\n", modno,
-         stack[param->stackidx].amodule[modno].trigger_th,
-         param->triggerno,
-         (char *)param->buf, (char *)stack[param->stackidx].pip->buf);
+  stack[param->stackidx].amodule[modno].trigger_interval += 12;
   if(stack[param->stackidx].amodule[modno].trigger_th &&
      (--param->triggerno > 0)) {
     ctimer_set(&stack[param->stackidx].amodule[modno].timer,
@@ -211,14 +193,11 @@ void
 c_dropped(struct pipe *p, struct stackmodule_i *module, uint8_t len)
 {
   PRINTF("c_dropped %d\n", len);
-  if(module[len].c_sent == NULL) {
-    return;
-  }
   uint8_t modno = stack[module[len].stack_id].modno;
-
+  if(module[len].c_dropped == NULL){return;}
   module[len].c_dropped(p, &module[len]);
   len++;
-  if((len >= 0) && (len < modno)) {
+  if((len >= 0) && (len < modno)) {	
     c_dropped(p, module, len);
   }
   PRINTF("~c_dropped %d\n", len);
@@ -244,9 +223,10 @@ c_forward(struct pipe *p, struct stackmodule_i *module, uint8_t len)
   rimeaddr_t *tmpaddr;
 
   for(;;) {
+	PRINTF("len: %d \n", len);
     if((len >= 0) && (len < 255) && (module[len].c_forward != NULL)) {
       tmpaddr = module[len].c_forward(p, &module[len]);
-      PRINTF("%d%d %d %d %d\n", tmpaddr->u8[0], tmpaddr->u8[1], len,
+      PRINTF("%d.%d %d %d %d\n", tmpaddr->u8[0], tmpaddr->u8[1], len,
              module[len].module_id, module[len].stack_id);
       return tmpaddr;
     }
