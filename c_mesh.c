@@ -63,7 +63,7 @@
 
 #include <stddef.h>             /* For offsetof */
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -87,10 +87,10 @@
 rimeaddr_t *
 c_mesh_forward(struct pipe *p, struct stackmodule_i *module) {
 	PRINTF("c_mesh_forward \n");
-	struct route_entry *rt;
+	struct c_route_entry *rt;
 	rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 3);
 
-	rt = route_lookup(tmpaddr);
+	rt = c_route_lookup(tmpaddr);
 	if (rt == NULL) {
 		int module_id = stack[RREQ_STACK_ID].modno;
 
@@ -98,15 +98,32 @@ c_mesh_forward(struct pipe *p, struct stackmodule_i *module) {
 				module_id - 1);
 		return NULL;
 	} else {
-		route_refresh(rt);
+		c_route_refresh(rt);
 	} PRINTF("~c_mesh_forward \n");
 
 	return &rt->nexthop;
 }
 
 /*---------------------------------------------------------------------------*/
-static void found_route(struct route_discovery_conn *rdc,
-		const rimeaddr_t * dest) {
+static void found_route(struct pipe *p, struct stackmodule_i *module) {
+  struct c_route_entry *rt;
+  rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 0, 3);
+  PRINTF("found route \n");
+  if (p->mesh_param.queued_data != NULL &&
+      rimeaddr_cmp (tmpaddr, &p->mesh_param.queued_data_dest )) {
+    queuebuf_to_packetbuf(p->mesh_param.queued_data);
+    queuebuf_free(p->mesh_param.queued_data);
+    p->mesh_param.queued_data= NULL;
+    rt = c_route_lookup(tmpaddr);
+      if (rt != NULL) {
+        //c_send(stack[module->stack_id].pip, stack[module->stack_id].amodule, module->module_id - 2);
+    	set_node_addr(module->stack_id, 0, 2, &rt->nexthop);
+        stack_send(&stack[module->stack_id], module->module_id - 1);
+      } else {
+        c_timed_out(stack[module->stack_id].pip, stack[module->stack_id].amodule, 
+                    module->module_id);
+      }
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -121,7 +138,7 @@ void c_mesh_timedout(struct pipe *p, struct stackmodule_i *module) {
 /*---------------------------------------------------------------------------*/
 
 void c_mesh_open(struct pipe *p, struct stackmodule_i *module) {
-	route_init();
+	c_route_init(p);
 	PRINTF("~c_mesh_open\n");
 }
 
@@ -160,7 +177,7 @@ int c_mesh_send(struct pipe *p, struct stackmodule_i *module) {
 				get_node_addr(module->stack_id, 0, 2));
 		set_node_addr(module->stack_id + 1, 0, 3,
 				get_node_addr(module->stack_id, 0, 3));
-
+		printaddr(module->stack_id);
 		c_send(stack[module->stack_id + 1].pip,
 				stack[module->stack_id + 1].amodule, module_id - 1);
 	} PRINTF("~c_mesh_send\n");
@@ -169,18 +186,19 @@ int c_mesh_send(struct pipe *p, struct stackmodule_i *module) {
 
 /*---------------------------------------------------------------------------*/
 void c_mesh_recv(struct pipe *p, struct stackmodule_i *module) {
-	PRINTF("c_mesh_recv\n");
-	/*PRINTF("Data received from %d.%d: %.*s (%d)\n",
-	 p->esender.u8[0], p->esender.u8[1],
-	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen()); */
-
-	struct route_entry *rt;
+  PRINTF("c_mesh_recv\n");
+	struct c_route_entry *rt;
 	/* Refresh the route when we hear a packet from a neighbor. */
 	rimeaddr_t *tmpaddr = get_node_addr(module->stack_id, 1, 1);
 
-	rt = route_lookup(tmpaddr);
+	rt = c_route_lookup(tmpaddr);
 	if (rt != NULL) {
-		route_refresh(rt);
+		c_route_refresh(rt);
+	}
+	
+	if (stack[RREQ_STACK_ID].rrep_received_flg == 1) {
+		stack[RREQ_STACK_ID].rrep_received_flg = 0;
+		found_route(p, module);
 	}
 }
 
