@@ -46,6 +46,9 @@
 #include "net/queuebuf.h"
 #include "net/packetbuf.h"
 #include "net/rime/channel.h"
+#include "lib/list.h"
+#include "lib/memb.h"
+
 
 #define C_ABC_ATTRIBUTES
 #define C_BROADCAST_ATTRIBUTES  { PACKETBUF_ADDR_SENDER, PACKETBUF_ADDRSIZE }, \
@@ -59,6 +62,9 @@
                                 C_UNICAST_ATTRIBUTES
 #define C_MESH_ATTRIBUTES C_MULTIHOP_ATTRIBUTES
 #define C_IPOLITE_ATTRIBUTES IBC_ATTRIBUTES
+#define C_LQE_EWMA_ATTRIBUTES { PACKETBUF_ADDR_SENDER, PACKETBUF_ADDRSIZE }, \
+							  {PACKETBUF_ATTR_PACKET_ID, PACKETBUF_ATTR_BIT * 8}, \
+							  C_ABC_ATTRIBUTES
 
 /* faulty, does not compile! In Contiki, the structure is not even used, although is defined
 #define C_NETFLOOD_ATTRIBUTES   { PACKETBUF_ADDR_ESENDER, PACKETBUF_ADDRSIZE }, \
@@ -70,6 +76,24 @@
 #define C_NETFLOOD_ATTRIBUTES   C_BROADCAST_ATTRIBUTES
 #define C_ROUTE_DISCOVERY_ATTRIBUTES C_NETFLOOD_ATTRIBUTES
 
+#ifdef NEIGHBOR_CONF_ENTRIES
+#define NUM_NEIGHBOR_ENTRIES NEIGHBOR_CONF_ENTRIES
+#else /* NEIGHBOR_CONF_ENTRIES */
+#define NUM_NEIGHBOR_ENTRIES 8
+#endif /* NEIGHBOR_CONF_ENTRIES */
+
+#ifdef ROUTE_CONF_ENTRIES
+#define NUM_RT_ENTRIES ROUTE_CONF_ENTRIES
+#else /* ROUTE_CONF_ENTRIES */
+#define NUM_RT_ENTRIES 8
+#endif /* ROUTE_CONF_ENTRIES */
+
+struct netflood_hdr {
+	uint16_t originator_seq_no;
+	rimeaddr_t originator;
+	uint16_t hop_no;
+};
+
 //@definedFor c_polite
 struct polite_p {
   struct ctimer timer;
@@ -77,14 +101,18 @@ struct polite_p {
   uint8_t hdrsize;
   uint8_t maxdups;
   uint8_t duplicate_no;
-  //int status;
-  //int num_tx;
 };
 
 struct netflood_p {
   clock_time_t queue_time;
   rimeaddr_t last_originator;
   uint8_t last_originator_seq_no;
+  uint8_t rebroadcast_flag;
+  uint8_t doFlood;
+  struct netflood_hdr hdr;
+  uint8_t hops;
+  struct queuebuf *queuebuf;
+
 };
 
 struct trickle_p {
@@ -117,6 +145,60 @@ struct mesh_p {
   uint8_t packet_timeout;
 };
 
+struct link_stats_p {
+	uint8_t maxpr_pts;
+	uint8_t maxrssi_pts;
+	uint8_t maxlqi_pts;
+};
+
+struct lqe_ewma_p {
+	double alpha;
+	uint16_t packet_loss;
+};
+
+struct lqe_linreg_p {
+};
+
+struct c_route_entry {
+  struct c_route_entry *next;
+  rimeaddr_t dest;
+  rimeaddr_t nexthop;
+  uint8_t seqno;
+  uint8_t hopno;
+  uint8_t cost;
+  uint8_t time;
+  uint8_t decay;
+  uint8_t time_last_decay;
+};
+
+struct c_neighbor {
+  struct c_neighbor *next;
+  rimeaddr_t addr;
+
+  uint8_t count_lock;
+  uint8_t cost_lock;
+
+  //software estimators
+  uint16_t last_seq_no;
+  clock_time_t first_time_stamp;
+  clock_time_t last_time_stamp;
+  uint16_t count;
+  double rate;
+  double cost;
+  uint16_t m; //missed_packets;
+  uint16_t k; //guessed_missed_packets;
+  int16_t recv_packets;
+  double prr;
+  double xy;
+  double x_2;
+
+  // hardware estimators
+  int16_t rssi_count;
+  int16_t lqi_count;
+  int16_t rssi;
+  int16_t lqi;
+};
+
 /* Pipe is a structure containing a channel and the associated vlayer.*/
 struct pipe {
   struct channel *channel;
@@ -146,6 +228,13 @@ struct pipe {
   struct route_discovery_p route_discovery_param;
   struct multihop_p multihop_param;
   struct mesh_p mesh_param;
+  struct link_stats_p link_stats_param;
+  struct lqe_ewma_p lqe_ewma_param;
+
+  list_t route_table;
+  struct memb route_mem;
+  list_t neighbor_list;
+  struct memb neighbor_mem;
 };
 
 struct stackmodule_i {
@@ -201,10 +290,27 @@ void c_discover(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
 void c_timed_out(struct pipe *p, struct stackmodule_i *module, uint8_t len);
 
+struct trigger_hdr {
+	uint16_t originator_seq_no;
+	rimeaddr_t originator;
+	uint16_t hop_no;
+	rimeaddr_t dest;
+  	uint8_t rreq_id;
+};
+
+/*struct trigger_route_msg {
+  rimeaddr_t dest;
+  uint8_t rreq_id;
+  uint8_t pad;
+};*/
+
 struct trigger_param {
   //struct pipe *pip;
   //struct stackmodule_i *amodule;
   char *buf;
+  struct trigger_hdr hdr;
+  //struct queuebuf *queuebuf;
+  //struct trigger_route_msg *msg;
   uint8_t stackidx;
   uint8_t modidx;
   uint8_t triggerno;
@@ -212,7 +318,7 @@ struct trigger_param {
 
 void c_triggered_send(struct trigger_param *param);
 
-void set_amodule_trigger(int stackIdx, char *buf);
+void set_amodule_trigger(int stackIdx);
 
 void set_node_addr(uint8_t stackid, uint8_t type, uint8_t addrid,
                    rimeaddr_t * addr);
